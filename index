@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jakub Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <script async crossorigin="anonymous" data-clerk-publishable-key="pk_test_ZHJpdmVuLWxlbXVyLTcwLmNsZXJrLmFjY291bnRzLmRldiQ" src="https://driven-lemur-70.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0d0d;
+      --bg2: #141414;
+      --bg3: #1a1a1a;
+      --border: rgba(255,255,255,0.07);
+      --border2: rgba(255,255,255,0.13);
+      --text: #f0ede6;
+      --muted: #7a7770;
+      --accent: #c8ff00;
+      --accent2: #1a2400;
+      --font-mono: 'IBM Plex Mono', monospace;
+      --font-sans: 'IBM Plex Sans', sans-serif;
+      --radius: 12px;
+    }
+
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* LOADING */
+    #loading {
+      position: fixed; inset: 0;
+      background: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 100;
+      transition: opacity 0.4s;
+    }
+    #loading.hide { opacity: 0; pointer-events: none; }
+    .loading-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:0.2;transform:scale(0.8)} 50%{opacity:1;transform:scale(1)} }
+
+    /* LOGIN PAGE */
+    #login-page {
+      display: none;
+      min-height: 100vh;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 2rem;
+      padding: 2rem;
+      animation: fadeIn 0.5s ease;
+    }
+    #login-page.visible { display: flex; }
+
+    .login-card {
+      background: var(--bg2);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius);
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 360px;
+      text-align: center;
+    }
+    .login-logo {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 2rem;
+    }
+    .login-logo span {
+      display: inline-block;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    .login-title {
+      font-size: 22px;
+      font-weight: 300;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.02em;
+    }
+    .login-sub {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 2rem;
+      font-family: var(--font-mono);
+    }
+    .google-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      padding: 12px 20px;
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      font-weight: 400;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .google-btn:hover {
+      background: #222;
+      border-color: rgba(255,255,255,0.22);
+    }
+    .google-icon {
+      width: 18px; height: 18px;
+      background: conic-gradient(#4285f4 0deg 90deg, #34a853 90deg 180deg, #fbbc05 180deg 270deg, #ea4335 270deg 360deg);
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* PORTAL PAGE */
+    #portal-page {
+      display: none;
+      min-height: 100vh;
+      padding: 1.5rem 1.25rem;
+      max-width: 760px;
+      margin: 0 auto;
+      animation: fadeIn 0.5s ease;
+    }
+    #portal-page.visible { display: block; }
+
+    @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+    /* HEADER */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 2.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .header-left { display: flex; align-items: center; gap: 10px; }
+    .header-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--accent);
+    }
+    .header-title {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--text);
+      letter-spacing: 0.02em;
+    }
+    .header-domain {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .user-area {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .user-avatar {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      border: 1px solid var(--border2);
+      object-fit: cover;
+    }
+    .user-avatar-placeholder {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: var(--accent2);
+      border: 1px solid var(--accent);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--accent);
+    }
+    .signout-btn {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--muted);
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 10px;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .signout-btn:hover { border-color: var(--border2); color: var(--text); }
+
+    /* SECTION */
+    .section-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+
+    /* APPS GRID */
+    .apps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 10px;
+      margin-bottom: 2.5rem;
+    }
+
+    .app-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem 1rem;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s, transform 0.1s;
+      text-decoration: none;
+      display: block;
+    }
+    .app-card:hover {
+      border-color: var(--border2);
+      background: var(--bg3);
+      transform: translateY(-1px);
+    }
+    .app-card:active { transform: translateY(0); }
+
+    .app-card.add {
+      border-style: dashed;
+      border-color: var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 8px;
+      min-height: 100px;
+    }
+    .app-card.add:hover { border-color: var(--border2); }
+
+    .app-emoji {
+      font-size: 24px;
+      margin-bottom: 10px;
+      display: block;
+    }
+    .app-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .app-desc {
+      font-size: 11px;
+      color: var(--muted);
+      font-family: var(--font-mono);
+      line-height: 1.5;
+    }
+    .add-icon {
+      font-size: 20px;
+      color: var(--muted);
+      line-height: 1;
+    }
+    .add-label {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--muted);
+    }
+
+    /* STATUS BAR */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+    }
+    .status-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    /* MOBILE */
+    @media (max-width: 480px) {
+      #portal-page { padding: 1rem; }
+      .apps-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+      .header-domain { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="loading"><div class="loading-dot"></div></div>
+
+  <!-- LOGIN -->
+  <div id="login-page">
+    <div class="login-card">
+      <div class="login-logo"><span></span>jakubportal.cz</div>
+      <h1 class="login-title">Vítej zpět</h1>
+      <p class="login-sub">přihlášení vyžadováno</p>
+      <button class="google-btn" id="sign-in-btn">
+        <div class="google-icon"></div>
+        Přihlásit se přes Google
+      </button>
+    </div>
+  </div>
+
+  <!-- PORTAL -->
+  <div id="portal-page">
+    <header class="header">
+      <div class="header-left">
+        <div class="header-dot"></div>
+        <div>
+          <div class="header-title">jakub portal</div>
+          <div class="header-domain">jakubportal.cz</div>
+        </div>
+      </div>
+      <div class="user-area">
+        <div class="user-avatar-placeholder" id="user-initials">J</div>
+        <button class="signout-btn" id="sign-out-btn">odhlásit</button>
+      </div>
+    </header>
+
+    <div class="section-label">aplikace</div>
+
+    <div class="apps-grid" id="apps-grid">
+      <!-- Apps budou přidávány sem -->
+      <div class="app-card add" id="add-app-btn">
+        <div class="add-icon">+</div>
+        <div class="add-label">nová aplikace</div>
+      </div>
+    </div>
+
+    <div class="status-bar">
+      <div class="status-dot"></div>
+      <span>Vercel · HTTPS · online</span>
+    </div>
+  </div>
+
+  <script>
+    const APPS = [
+      // Sem budeme přidávat aplikace, např.:
+      // { name: "Finance tracker", desc: "výdaje a příjmy", emoji: "📊", url: "/apps/finance" },
+      // { name: "Todo listy", desc: "úkoly a projekty", emoji: "📋", url: "/apps/todo" },
+    ];
+
+    window.addEventListener('load', async () => {
+      await window.Clerk.load();
+
+      const loading = document.getElementById('loading');
+      const loginPage = document.getElementById('login-page');
+      const portalPage = document.getElementById('portal-page');
+      const signInBtn = document.getElementById('sign-in-btn');
+      const signOutBtn = document.getElementById('sign-out-btn');
+      const userInitials = document.getElementById('user-initials');
+      const appsGrid = document.getElementById('apps-grid');
+
+      function renderApps() {
+        const addBtn = document.getElementById('add-app-btn');
+        APPS.forEach(app => {
+          const card = document.createElement('a');
+          card.className = 'app-card';
+          card.href = app.url || '#';
+          card.innerHTML = `
+            <span class="app-emoji">${app.emoji}</span>
+            <div class="app-name">${app.name}</div>
+            <div class="app-desc">${app.desc}</div>
+          `;
+          appsGrid.insertBefore(card, addBtn);
+        });
+      }
+
+      function showPortal(user) {
+        const name = user.firstName || user.emailAddresses?.[0]?.emailAddress || 'J';
+        userInitials.textContent = name.charAt(0).toUpperCase();
+        if (user.imageUrl) {
+          const img = document.createElement('img');
+          img.className = 'user-avatar';
+          img.src = user.imageUrl;
+          img.alt = name;
+          userInitials.replaceWith(img);
+        }
+        renderApps();
+        loading.classList.add('hide');
+        portalPage.classList.add('visible');
+      }
+
+      function showLogin() {
+        loading.classList.add('hide');
+        loginPage.classList.add('visible');
+      }
+
+      const user = window.Clerk.user;
+      if (user) {
+        showPortal(user);
+      } else {
+        showLogin();
+      }
+
+      signInBtn.addEventListener('click', () => {
+        window.Clerk.openSignIn({
+          afterSignInUrl: window.location.href,
+          afterSignUpUrl: window.location.href,
+        });
+      });
+
+      signOutBtn.addEventListener('click', async () => {
+        await window.Clerk.signOut();
+        location.reload();
+      });
+
+      window.Clerk.addListener(({ user }) => {
+        if (user) {
+          loginPage.classList.remove('visible');
+          showPortal(user);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
