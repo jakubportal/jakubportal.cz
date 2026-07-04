@@ -1,434 +1,1030 @@
-<!DOCTYPE html>
-<html lang="cs">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Jakub Portal</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
-  <script async crossorigin="anonymous" data-clerk-publishable-key="pk_test_ZHJpdmVuLWxlbXVyLTcwLmNsZXJrLmFjY291bnRzLmRldiQ" src="https://driven-lemur-70.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+From: <Saved by Blink>
+Snapshot-Content-Location: file:///C:/Users/jakub.vrsecky/Downloads/timesheet.html
+Subject: =?utf-8?Q?Timesheet=20=E2=80=94=20Jakub=20Portal?=
+Date: Sat, 4 Jul 2026 09:35:05 +0200
+MIME-Version: 1.0
+Content-Type: multipart/related;
+	type="text/html";
+	boundary="----MultipartBoundary--wLneMG4f3G0cRpjqlAMuiYmfhIANJEUnTphw1hnl6s----"
 
-    :root {
-      --bg: #0d0d0d;
-      --bg2: #141414;
-      --bg3: #1a1a1a;
-      --border: rgba(255,255,255,0.07);
-      --border2: rgba(255,255,255,0.13);
-      --text: #f0ede6;
-      --muted: #7a7770;
-      --accent: #c8ff00;
-      --accent2: #1a2400;
-      --font-mono: 'IBM Plex Mono', monospace;
-      --font-sans: 'IBM Plex Sans', sans-serif;
-      --radius: 12px;
-    }
 
-    html, body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--font-sans);
-      min-height: 100vh;
-      -webkit-font-smoothing: antialiased;
-    }
+------MultipartBoundary--wLneMG4f3G0cRpjqlAMuiYmfhIANJEUnTphw1hnl6s----
+Content-Type: text/html
+Content-ID: <frame-F49C75C147B565EFA142EB52371F0F58@mhtml.blink>
+Content-Transfer-Encoding: quoted-printable
+Content-Location: file:///C:/Users/jakub.vrsecky/Downloads/timesheet.html
 
-    /* LOADING */
-    #loading {
-      position: fixed; inset: 0;
-      background: var(--bg);
-      display: flex; align-items: center; justify-content: center;
-      z-index: 100;
-      transition: opacity 0.4s;
-    }
-    #loading.hide { opacity: 0; pointer-events: none; }
-    .loading-dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      background: var(--accent);
-      animation: pulse 1.2s ease-in-out infinite;
-    }
-    @keyframes pulse { 0%,100%{opacity:0.2;transform:scale(0.8)} 50%{opacity:1;transform:scale(1)} }
+<!DOCTYPE html><html lang=3D"cs"><head><meta http-equiv=3D"Content-Type" co=
+ntent=3D"text/html; charset=3DUTF-8"><link rel=3D"stylesheet" type=3D"text/=
+css" href=3D"cid:css-fa7c5ce2-0705-415d-b8a5-0123704d5885@mhtml.blink" />
 
-    /* LOGIN PAGE */
-    #login-page {
-      display: none;
-      min-height: 100vh;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      gap: 2rem;
-      padding: 2rem;
-      animation: fadeIn 0.5s ease;
-    }
-    #login-page.visible { display: flex; }
+<meta name=3D"viewport" content=3D"width=3Ddevice-width, initial-scale=3D1.=
+0">
+<title>Timesheet =E2=80=94 Jakub Portal</title>
+<link rel=3D"preconnect" href=3D"https://fonts.googleapis.com/">
+<link href=3D"https://fonts.googleapis.com/css2?family=3DIBM+Plex+Mono:wght=
+@400;500&amp;family=3DIBM+Plex+Sans:wght@300;400;500&amp;display=3Dswap" re=
+l=3D"stylesheet">
 
-    .login-card {
-      background: var(--bg2);
-      border: 1px solid var(--border2);
-      border-radius: var(--radius);
-      padding: 2.5rem 2rem;
-      width: 100%;
-      max-width: 360px;
-      text-align: center;
-    }
-    .login-logo {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      letter-spacing: 0.15em;
-      color: var(--muted);
-      text-transform: uppercase;
-      margin-bottom: 2rem;
-    }
-    .login-logo span {
-      display: inline-block;
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: var(--accent);
-      vertical-align: middle;
-      margin-right: 8px;
-    }
-    .login-title {
-      font-size: 22px;
-      font-weight: 300;
-      color: var(--text);
-      margin-bottom: 0.5rem;
-      letter-spacing: -0.02em;
-    }
-    .login-sub {
-      font-size: 13px;
-      color: var(--muted);
-      margin-bottom: 2rem;
-      font-family: var(--font-mono);
-    }
-    .google-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      width: 100%;
-      padding: 12px 20px;
-      background: var(--bg3);
-      border: 1px solid var(--border2);
-      border-radius: 8px;
-      color: var(--text);
-      font-family: var(--font-sans);
-      font-size: 14px;
-      font-weight: 400;
-      cursor: pointer;
-      transition: background 0.15s, border-color 0.15s;
-    }
-    .google-btn:hover {
-      background: #222;
-      border-color: rgba(255,255,255,0.22);
-    }
-    .google-icon {
-      width: 18px; height: 18px;
-      background: conic-gradient(#4285f4 0deg 90deg, #34a853 90deg 180deg, #fbbc05 180deg 270deg, #ea4335 270deg 360deg);
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
 
-    /* PORTAL PAGE */
-    #portal-page {
-      display: none;
-      min-height: 100vh;
-      padding: 1.5rem 1.25rem;
-      max-width: 760px;
-      margin: 0 auto;
-      animation: fadeIn 0.5s ease;
-    }
-    #portal-page.visible { display: block; }
 
-    @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
-
-    /* HEADER */
-    .header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 2.5rem;
-      padding-bottom: 1rem;
-      border-bottom: 1px solid var(--border);
-    }
-    .header-left { display: flex; align-items: center; gap: 10px; }
-    .header-dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      background: var(--accent);
-    }
-    .header-title {
-      font-family: var(--font-mono);
-      font-size: 13px;
-      color: var(--text);
-      letter-spacing: 0.02em;
-    }
-    .header-domain {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--muted);
-    }
-    .user-area {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .user-avatar {
-      width: 30px; height: 30px;
-      border-radius: 50%;
-      border: 1px solid var(--border2);
-      object-fit: cover;
-    }
-    .user-avatar-placeholder {
-      width: 30px; height: 30px;
-      border-radius: 50%;
-      background: var(--accent2);
-      border: 1px solid var(--accent);
-      display: flex; align-items: center; justify-content: center;
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--accent);
-    }
-    .signout-btn {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--muted);
-      background: none;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 5px 10px;
-      cursor: pointer;
-      transition: border-color 0.15s, color 0.15s;
-    }
-    .signout-btn:hover { border-color: var(--border2); color: var(--text); }
-
-    /* SECTION */
-    .section-label {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 1rem;
-    }
-
-    /* APPS GRID */
-    .apps-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-      gap: 10px;
-      margin-bottom: 2.5rem;
-    }
-
-    .app-card {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1.25rem 1rem;
-      cursor: pointer;
-      transition: border-color 0.15s, background 0.15s, transform 0.1s;
-      text-decoration: none;
-      display: block;
-    }
-    .app-card:hover {
-      border-color: var(--border2);
-      background: var(--bg3);
-      transform: translateY(-1px);
-    }
-    .app-card:active { transform: translateY(0); }
-
-    .app-card.add {
-      border-style: dashed;
-      border-color: var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      gap: 8px;
-      min-height: 100px;
-    }
-    .app-card.add:hover { border-color: var(--border2); }
-
-    .app-emoji {
-      font-size: 24px;
-      margin-bottom: 10px;
-      display: block;
-    }
-    .app-name {
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text);
-      margin-bottom: 4px;
-    }
-    .app-desc {
-      font-size: 11px;
-      color: var(--muted);
-      font-family: var(--font-mono);
-      line-height: 1.5;
-    }
-    .add-icon {
-      font-size: 20px;
-      color: var(--muted);
-      line-height: 1;
-    }
-    .add-label {
-      font-size: 11px;
-      font-family: var(--font-mono);
-      color: var(--muted);
-    }
-
-    /* STATUS BAR */
-    .status-bar {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--muted);
-      margin-top: 2rem;
-      padding-top: 1rem;
-      border-top: 1px solid var(--border);
-    }
-    .status-dot {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: var(--accent);
-    }
-
-    /* MOBILE */
-    @media (max-width: 480px) {
-      #portal-page { padding: 1rem; }
-      .apps-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-      .header-domain { display: none; }
-    }
-  </style>
 </head>
 <body>
 
-  <div id="loading"><div class="loading-dot"></div></div>
+<div class=3D"toast" id=3D"toast"></div>
 
-  <!-- LOGIN -->
-  <div id="login-page">
-    <div class="login-card">
-      <div class="login-logo"><span></span>jakubportal.cz</div>
-      <h1 class="login-title">Vítej zpět</h1>
-      <p class="login-sub">přihlášení vyžadováno</p>
-      <button class="google-btn" id="sign-in-btn">
-        <div class="google-icon"></div>
-        Přihlásit se přes Google
-      </button>
+<!-- HEADER -->
+<div class=3D"hdr">
+  <div class=3D"hdr-logo">
+    <div class=3D"logo-dot"></div>
+    <span>Timesheet</span>
+  </div>
+  <div class=3D"hdr-user" id=3D"hdr-name">Jakub Vr=C5=A1eck=C3=BD OSV=C4=8C=
+</div>
+</div>
+
+<!-- NAV -->
+<div class=3D"nav">
+  <div class=3D"ntab" id=3D"nav-ts">=E2=8F=B1 Timesheet</div>
+  <div class=3D"ntab on" id=3D"nav-inv">=F0=9F=93=84 Nov=C3=A1 faktura</div=
+>
+  <div class=3D"ntab" id=3D"nav-list">=F0=9F=93=8B Vydan=C3=A9 faktury</div=
+>
+  <div class=3D"ntab" id=3D"nav-set">=E2=9A=99=EF=B8=8F Nastaven=C3=AD</div=
+>
+</div>
+
+<!-- =3D=3D=3D=3D=3D TIMESHEET =3D=3D=3D=3D=3D -->
+<div class=3D"pg" id=3D"tab-ts">
+
+  <!-- KPI -->
+  <div class=3D"kpis">
+    <div class=3D"kpi">
+      <div class=3D"kl">Tento m=C4=9Bs=C3=ADc</div>
+      <div class=3D"kv b" id=3D"kpi-month-h">0,00 h</div>
+      <div class=3D"ks" id=3D"kpi-month-sub">0&nbsp;K=C4=8D</div>
+    </div>
+    <div class=3D"kpi">
+      <div class=3D"kl">Nezafakturov=C3=A1no</div>
+      <div class=3D"kv b" id=3D"kpi-uninv-h">0,00 h</div>
+      <div class=3D"ks" id=3D"kpi-uninv-sub">odhad 0&nbsp;K=C4=8D</div>
+    </div>
+    <div class=3D"kpi">
+      <div class=3D"kl">
+        <div class=3D"yr-nav">
+          <button class=3D"yr-btn">=E2=80=B9</button>
+          <span class=3D"yr-label" id=3D"kpi-year-label">2026</span>
+          <button class=3D"yr-btn">=E2=80=BA</button>
+        </div>
+        Fakturace
+      </div>
+      <div class=3D"kv g" id=3D"kpi-inv-total">0&nbsp;K=C4=8D</div>
+      <div class=3D"ks" id=3D"kpi-inv-sub">0 faktur</div>
     </div>
   </div>
 
-  <!-- PORTAL -->
-  <div id="portal-page">
-    <header class="header">
-      <div class="header-left">
-        <div class="header-dot"></div>
-        <div>
-          <div class="header-title">jakub portal</div>
-          <div class="header-domain">jakubportal.cz</div>
+  <!-- NOV=C3=9D Z=C3=81ZNAM -->
+  <div class=3D"card">
+    <div class=3D"ch"><div class=3D"ct">=E2=9E=95 Nov=C3=BD z=C3=A1znam</di=
+v></div>
+    <div class=3D"cb" style=3D"display:flex;flex-direction:column;gap:12px"=
+>
+
+      <!-- =C5=98ada 1: klient -->
+      <div class=3D"frow">
+        <div class=3D"fg" style=3D"max-width:220px">
+          <div class=3D"fl">Klient</div>
+          <div class=3D"ac-wrap">
+            <input id=3D"ent-client" placeholder=3D"za=C4=8Dni ps=C3=A1t=E2=
+=80=A6" autocomplete=3D"off">
+            <div class=3D"ac-drop" id=3D"ac-clients"></div>
+          </div>
+        </div>
+        <div class=3D"divv"></div>
+        <div class=3D"fg">
+          <div class=3D"fl">Nej=C4=8Dast=C4=9Bj=C5=A1=C3=AD</div>
+          <div style=3D"display:flex;gap:6px;flex-wrap:wrap" id=3D"quick-cl=
+ients"></div>
+        </div>
+        <div style=3D"margin-left:auto;font-size:12px;color:var(--muted);al=
+ign-self:center;white-space:nowrap">
+          sazba: <strong id=3D"rate-display" style=3D"color:var(--text);fon=
+t-family:var(--mono)">=E2=80=94</strong>
         </div>
       </div>
-      <div class="user-area">
-        <div class="user-avatar-placeholder" id="user-initials">J</div>
-        <button class="signout-btn" id="sign-out-btn">odhlásit</button>
+
+      <!-- =C5=98ada 2: den -->
+      <div class=3D"frow">
+        <div class=3D"fg" style=3D"max-width:160px">
+          <div class=3D"fl">Datum</div>
+          <input type=3D"date" id=3D"ent-date">
+        </div>
+        <div class=3D"divv"></div>
+        <div class=3D"fg" style=3D"flex:1">
+          <div class=3D"fl">Rychl=C3=BD v=C3=BDb=C4=9Br</div>
+          <div class=3D"days-wrap">
+            <button class=3D"nav-btn">=E2=80=B9</button>
+            <div class=3D"days-strip" id=3D"days-strip"><div class=3D"day-c=
+hip ">
+      <div class=3D"day-name">=C4=8Ct</div>
+      <div class=3D"day-num">25. 6.</div>
+      <div class=3D"day-h no">=E2=8F=B1 =E2=80=94</div>
+    </div><div class=3D"day-chip ">
+      <div class=3D"day-name">P=C3=A1</div>
+      <div class=3D"day-num">26. 6.</div>
+      <div class=3D"day-h no">=E2=8F=B1 =E2=80=94</div>
+    </div><div class=3D"day-chip ">
+      <div class=3D"day-name">So</div>
+      <div class=3D"day-num">27. 6.</div>
+      <div class=3D"day-h no">=E2=8F=B1 =E2=80=94</div>
+    </div><div class=3D"day-chip ">
+      <div class=3D"day-name">Ne</div>
+      <div class=3D"day-num">28. 6.</div>
+      <div class=3D"day-h no">=E2=8F=B1 =E2=80=94</div>
+    </div><div class=3D"day-chip ">
+      <div class=3D"day-name">Po</div>
+      <div class=3D"day-num">29. 6.</div>
+      <div class=3D"day-h no">=E2=8F=B1 =E2=80=94</div>
+    </div></div>
+            <button class=3D"nav-btn">=E2=80=BA</button>
+          </div>
+        </div>
       </div>
-    </header>
 
-    <div class="section-label">aplikace</div>
-
-    <div class="apps-grid" id="apps-grid">
-      <!-- Apps budou přidávány sem -->
-      <div class="app-card add" id="add-app-btn">
-        <div class="add-icon">+</div>
-        <div class="add-label">nová aplikace</div>
+      <!-- =C5=98ada 3: hodiny + popis -->
+      <div class=3D"frow" style=3D"align-items:flex-end">
+        <div class=3D"fg" style=3D"max-width:130px">
+          <div class=3D"fl">Hodiny</div>
+          <div class=3D"hrs-ctrl">
+            <button class=3D"hbtn">=E2=88=92</button>
+            <input class=3D"hval" id=3D"ent-hours" value=3D"1,00">
+            <button class=3D"hbtn">+</button>
+          </div>
+          <div style=3D"font-size:10px;color:var(--muted);text-align:center=
+;margin-top:2px;font-family:var(--mono)">=C2=B1 15 min</div>
+        </div>
+        <div class=3D"divv"></div>
+        <div class=3D"fg" style=3D"flex:1">
+          <div class=3D"fl">Popis pr=C3=A1ce</div>
+          <input id=3D"ent-desc" placeholder=3D"co jsi d=C4=9Blal=E2=80=A6"=
+>
+        </div>
+        <button class=3D"save-btn">P=C5=99idat =E2=9C=93</button>
       </div>
-    </div>
-
-    <div class="status-bar">
-      <div class="status-dot"></div>
-      <span>Vercel · HTTPS · online</span>
     </div>
   </div>
 
-  <script>
-    const APPS = [
-      // Sem budeme přidávat aplikace, např.:
-      // { name: "Finance tracker", desc: "výdaje a příjmy", emoji: "📊", url: "/apps/finance" },
-      // { name: "Todo listy", desc: "úkoly a projekty", emoji: "📋", url: "/apps/todo" },
-    ];
+  <!-- Z=C3=81ZNAMY DNE -->
+  <div style=3D"display:flex;align-items:center;justify-content:space-betwe=
+en;margin-bottom:6px;font-size:12px;color:var(--muted)">
+    <span>=F0=9F=93=85 Z=C3=A1znamy =E2=80=94 <strong id=3D"day-label" styl=
+e=3D"color:var(--text)">4. =C4=8Dervence 2026</strong></span>
+    <span id=3D"day-total" style=3D"color:var(--text);font-weight:500;font-=
+family:var(--mono)"></span>
+  </div>
+  <div class=3D"card" id=3D"day-entries-card">
+    <div id=3D"day-entries"><div class=3D"loading-msg" style=3D"padding:1re=
+m">=C5=BE=C3=A1dn=C3=A9 z=C3=A1znamy pro tento den</div></div>
+  </div>
 
-    window.addEventListener('load', async () => {
-      await window.Clerk.load();
+  <!-- P=C5=98EHLED M=C4=9AS=C3=8DCE -->
+  <div class=3D"card">
+    <div class=3D"ch">
+      <div class=3D"ct">=F0=9F=93=8A P=C5=99ehled</div>
+      <div style=3D"display:flex;gap:8px;align-items:center;flex-wrap:wrap"=
+>
+        <select id=3D"filter-month" style=3D"font-size:12px;padding:4px 8px=
+"><option value=3D"2026-07">=C4=8Cervenec 2026</option><option value=3D"202=
+6-06">=C4=8Cerven 2026</option><option value=3D"2026-05">Kv=C4=9Bten 2026</=
+option><option value=3D"2026-04">Duben 2026</option><option value=3D"2026-0=
+3">B=C5=99ezen 2026</option><option value=3D"2026-02">=C3=9Anor 2026</optio=
+n><option value=3D"2026-01">Leden 2026</option><option value=3D"2025-12">Pr=
+osinec 2025</option><option value=3D"2025-11">Listopad 2025</option><option=
+ value=3D"2025-10">=C5=98=C3=ADjen 2025</option><option value=3D"2025-09">Z=
+=C3=A1=C5=99=C3=AD 2025</option><option value=3D"2025-08">Srpen 2025</optio=
+n></select>
+        <select id=3D"filter-client" style=3D"font-size:12px;padding:4px 8p=
+x"><option value=3D"">V=C5=A1ichni klienti</option></select>
+        <button class=3D"btn ghost">=F0=9F=93=A5 Export</button>
+      </div>
+    </div>
+    <div style=3D"overflow-x:auto">
+      <table>
+        <thead><tr><th>Datum</th><th>Klient</th><th>Popis</th><th class=3D"=
+tr">Hodiny</th><th class=3D"tr">Sazba</th><th class=3D"tr">=C4=8C=C3=A1stka=
+</th><th>Stav</th><th></th></tr></thead>
+        <tbody id=3D"month-body"><tr><td colspan=3D"8" class=3D"loading-msg=
+">=C5=BD=C3=A1dn=C3=A9 z=C3=A1znamy</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
 
-      const loading = document.getElementById('loading');
-      const loginPage = document.getElementById('login-page');
-      const portalPage = document.getElementById('portal-page');
-      const signInBtn = document.getElementById('sign-in-btn');
-      const signOutBtn = document.getElementById('sign-out-btn');
-      const userInitials = document.getElementById('user-initials');
-      const appsGrid = document.getElementById('apps-grid');
+<!-- =3D=3D=3D=3D=3D NOV=C3=81 FAKTURA =3D=3D=3D=3D=3D -->
+<div class=3D"pg on" id=3D"tab-inv">
+  <div class=3D"inv-layout">
+    <!-- FORMUL=C3=81=C5=98 -->
+    <div>
+      <div class=3D"card">
+        <div class=3D"ch"><div class=3D"ct">=F0=9F=91=A4 Klient</div></div>
+        <div class=3D"cb">
+          <select id=3D"inv-client" style=3D"font-size:13px;margin-bottom:0=
+"><option value=3D"">=E2=80=94 vyber klienta =E2=80=94</option></select>
+        </div>
+      </div>
 
-      function renderApps() {
-        const addBtn = document.getElementById('add-app-btn');
-        APPS.forEach(app => {
-          const card = document.createElement('a');
-          card.className = 'app-card';
-          card.href = app.url || '#';
-          card.innerHTML = `
-            <span class="app-emoji">${app.emoji}</span>
-            <div class="app-name">${app.name}</div>
-            <div class="app-desc">${app.desc}</div>
-          `;
-          appsGrid.insertBefore(card, addBtn);
-        });
-      }
+      <div class=3D"card">
+        <div class=3D"ch">
+          <div class=3D"ct">=E2=8F=B1 V=C3=BDb=C4=9Br hodin k fakturaci</di=
+v>
+          <span id=3D"inv-selected-info" style=3D"font-size:11px;color:var(=
+--muted)"></span>
+        </div>
+        <div style=3D"overflow-x:auto">
+          <table>
+            <thead><tr><th style=3D"width:32px"></th><th>Datum</th><th>Popi=
+s</th><th class=3D"tr">h</th><th class=3D"tr">=C4=8C=C3=A1stka</th></tr></t=
+head>
+            <tbody id=3D"inv-entries-body"><tr><td colspan=3D"5" class=3D"l=
+oading-msg">Vyber klienta</td></tr></tbody>
+          </table>
+        </div>
+      </div>
 
-      function showPortal(user) {
-        const name = user.firstName || user.emailAddresses?.[0]?.emailAddress || 'J';
-        userInitials.textContent = name.charAt(0).toUpperCase();
-        if (user.imageUrl) {
-          const img = document.createElement('img');
-          img.className = 'user-avatar';
-          img.src = user.imageUrl;
-          img.alt = name;
-          userInitials.replaceWith(img);
-        }
-        renderApps();
-        loading.classList.add('hide');
-        portalPage.classList.add('visible');
-      }
+      <div class=3D"card">
+        <div class=3D"ch"><div class=3D"ct">=F0=9F=93=84 Faktura</div></div=
+>
+        <div class=3D"cb">
+          <div class=3D"split" style=3D"margin-bottom:8px">
+            <div class=3D"fg"><div class=3D"fl">=C4=8C=C3=ADslo faktury</di=
+v><input id=3D"inv-number" readonly=3D"" style=3D"background:var(--bg3);opa=
+city:0.7"></div>
+            <div class=3D"fg"><div class=3D"fl">Datum vystaven=C3=AD</div><=
+input type=3D"date" id=3D"inv-issued"></div>
+          </div>
+          <div class=3D"split" style=3D"margin-bottom:8px">
+            <div class=3D"fg"><div class=3D"fl">Datum splatnosti</div><inpu=
+t type=3D"date" id=3D"inv-due"></div>
+            <div class=3D"fg"><div class=3D"fl">Zp=C5=AFsob platby</div>
+              <select id=3D"inv-payment">
+                <option value=3D"transfer">P=C5=99evodem</option>
+                <option value=3D"cash">Hotov=C4=9B</option>
+              </select>
+            </div>
+          </div>
+          <div class=3D"fg" style=3D"margin-bottom:10px">
+            <div class=3D"fl">Pozn=C3=A1mka</div>
+            <textarea id=3D"inv-note" rows=3D"2" placeholder=3D"voliteln=C3=
+=A1 pozn=C3=A1mka=E2=80=A6"></textarea>
+          </div>
+          <div class=3D"upzone">
+            =F0=9F=93=8E P=C5=99idat p=C5=99=C3=ADlohu (PDF, foto=E2=80=A6)
+          </div>
+          <input type=3D"file" id=3D"inv-file" style=3D"display:none" multi=
+ple=3D"">
+          <div id=3D"inv-attachments"></div>
+          <button class=3D"btn primary" style=3D"width:100%;justify-content=
+:center;padding:9px">
+            Vystavit fakturu
+          </button>
+        </div>
+      </div>
+    </div>
 
-      function showLogin() {
-        loading.classList.add('hide');
-        loginPage.classList.add('visible');
-      }
+    <!-- N=C3=81HLED -->
+    <div>
+      <div class=3D"card">
+        <div class=3D"ch">
+          <div class=3D"ct">=F0=9F=91=81 N=C3=A1hled <span style=3D"font-si=
+ze:10px;background:var(--yellow-bg);color:var(--yellow);padding:2px 8px;bor=
+der-radius:20px;margin-left:4px">=C5=BEiv=C3=BD</span></div>
+          <button class=3D"btn ghost">=F0=9F=96=A8 Tisk / PDF</button>
+        </div>
+        <div class=3D"cb">
+          <div class=3D"preview" id=3D"invoice-preview">
+            <div class=3D"inv-head">
+              <div><div class=3D"inv-ttl">Faktura</div><div class=3D"inv-nu=
+m" id=3D"prev-num">FV2026/001</div></div>
+              <div class=3D"inv-meta" id=3D"prev-meta">Vystavena: 4. 7. 202=
+6<br>Splatnost: 18. 7. 2026<br>P=C5=99evodem</div>
+            </div>
+            <div class=3D"inv-parties">
+              <div>
+                <div class=3D"plbl">Dodavatel</div>
+                <div class=3D"pname" id=3D"prev-sup-name">=E2=80=94</div>
+                <div class=3D"pdet" id=3D"prev-sup-det"><br>Nepl=C3=A1tce D=
+PH</div>
+              </div>
+              <div>
+                <div class=3D"plbl">Odb=C4=9Bratel</div>
+                <div class=3D"pname" id=3D"prev-cl-name">=E2=80=94</div>
+                <div class=3D"pdet" id=3D"prev-cl-det"></div>
+              </div>
+            </div>
+            <table class=3D"inv-tbl">
+              <thead><tr><th>Popis</th><th>Datum</th><th>Hodiny</th><th>Saz=
+ba</th><th>=C4=8C=C3=A1stka</th></tr></thead>
+              <tbody id=3D"prev-items"></tbody>
+            </table>
+            <div class=3D"inv-total">
+              <div class=3D"inv-tline fin"><span>Celkem k =C3=BAhrad=C4=9B<=
+/span><span id=3D"prev-total">0 K=C4=8D</span></div>
+            </div>
+            <div class=3D"inv-bank" id=3D"prev-bank"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
-      const user = window.Clerk.user;
-      if (user) {
-        showPortal(user);
-      } else {
-        showLogin();
-      }
+<!-- =3D=3D=3D=3D=3D VYDAN=C3=89 FAKTURY =3D=3D=3D=3D=3D -->
+<div class=3D"pg" id=3D"tab-list">
+  <div class=3D"kpis">
+    <div class=3D"kpi"><div class=3D"kl">Celkem vyd=C3=A1no</div><div class=
+=3D"kv b" id=3D"list-kpi-total">0&nbsp;K=C4=8D</div></div>
+    <div class=3D"kpi"><div class=3D"kl">Uhrazeno</div><div class=3D"kv g" =
+id=3D"list-kpi-paid">0&nbsp;K=C4=8D</div></div>
+    <div class=3D"kpi"><div class=3D"kl">=C4=8Cek=C3=A1 na =C3=BAhradu</div=
+><div class=3D"kv r" id=3D"list-kpi-open">0&nbsp;K=C4=8D</div></div>
+  </div>
+  <div class=3D"card">
+    <div class=3D"ch">
+      <div style=3D"display:flex;gap:8px">
+        <input placeholder=3D"Hledat=E2=80=A6" style=3D"width:180px;font-si=
+ze:12px">
+        <select style=3D"font-size:12px;padding:4px 8px">
+          <option value=3D"">V=C5=A1echny stavy</option>
+          <option value=3D"open">Otev=C5=99en=C3=A9</option>
+          <option value=3D"paid">Uhrazen=C3=A9</option>
+        </select>
+      </div>
+      <button class=3D"btn ghost">=F0=9F=93=A5 Export Excel</button>
+    </div>
+    <div style=3D"overflow-x:auto">
+      <table>
+        <thead><tr><th>=C4=8C=C3=ADslo</th><th>Klient</th><th>Vystavena</th=
+><th>Splatnost</th><th class=3D"tr">=C4=8C=C3=A1stka</th><th>Stav</th><th><=
+/th></tr></thead>
+        <tbody id=3D"list-body"><tr><td colspan=3D"7" class=3D"loading-msg"=
+>=C5=BD=C3=A1dn=C3=A9 faktury</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
 
-      signInBtn.addEventListener('click', () => {
-        window.Clerk.openSignIn({
-          afterSignInUrl: window.location.href,
-          afterSignUpUrl: window.location.href,
-        });
-      });
+<!-- =3D=3D=3D=3D=3D NASTAVEN=C3=8D =3D=3D=3D=3D=3D -->
+<div class=3D"pg" id=3D"tab-set">
+  <div class=3D"split" style=3D"margin-bottom:1rem">
+    <div class=3D"card">
+      <div class=3D"ch"><div class=3D"ct">=F0=9F=91=A4 Moje =C3=BAdaje</div=
+></div>
+      <div class=3D"cb" style=3D"display:flex;flex-direction:column;gap:8px=
+">
+        <div class=3D"fg"><div class=3D"fl">Jm=C3=A9no / n=C3=A1zev</div><i=
+nput id=3D"set-name"></div>
+        <div class=3D"split">
+          <div class=3D"fg"><div class=3D"fl">I=C4=8CO</div><input id=3D"se=
+t-ico"></div>
+          <div class=3D"fg"><div class=3D"fl">Prefix faktury</div><input id=
+=3D"set-prefix" value=3D"FV"></div>
+        </div>
+        <div class=3D"fg"><div class=3D"fl">Adresa</div><input id=3D"set-ad=
+dress"></div>
+        <div class=3D"fg"><div class=3D"fl">=C4=8C=C3=ADslo =C3=BA=C4=8Dtu<=
+/div><input id=3D"set-bank"></div>
+        <div class=3D"fg"><div class=3D"fl">IBAN</div><input id=3D"set-iban=
+"></div>
+        <div class=3D"fg"><div class=3D"fl">Splatnost (dn=C3=AD)</div><inpu=
+t id=3D"set-due" type=3D"number" value=3D"14" style=3D"width:80px"></div>
+        <div class=3D"fg"><div class=3D"fl">Text z=C3=A1pat=C3=AD</div><tex=
+tarea id=3D"set-footer" rows=3D"2"></textarea></div>
+      </div>
+    </div>
 
-      signOutBtn.addEventListener('click', async () => {
-        await window.Clerk.signOut();
-        location.reload();
-      });
+    <div class=3D"card">
+      <div class=3D"ch">
+        <div class=3D"ct">=F0=9F=8F=A2 Klienti</div>
+        <button class=3D"btn ghost">+ P=C5=99idat</button>
+      </div>
+      <div class=3D"cb" id=3D"clients-list"><div class=3D"cl-add">+ P=C5=99=
+idat prvn=C3=ADho klienta</div></div>
+    </div>
+  </div>
+  <div style=3D"display:flex;justify-content:flex-end">
+    <button class=3D"btn primary">=F0=9F=92=BE Ulo=C5=BEit nastaven=C3=AD</=
+button>
+  </div>
+</div>
 
-      window.Clerk.addListener(({ user }) => {
-        if (user) {
-          loginPage.classList.remove('visible');
-          showPortal(user);
-        }
-      });
-    });
-  </script>
-</body>
-</html>
+<!-- MODAL: KLIENT -->
+<div class=3D"modal-overlay" id=3D"modal-client">
+  <div class=3D"modal">
+    <div class=3D"modal-title" id=3D"modal-cl-title">Nov=C3=BD klient</div>
+    <div class=3D"fg" style=3D"margin-bottom:8px"><div class=3D"fl">N=C3=A1=
+zev *</div><input id=3D"cl-name"></div>
+    <div class=3D"split" style=3D"margin-bottom:8px">
+      <div class=3D"fg"><div class=3D"fl">I=C4=8CO</div><input id=3D"cl-ico=
+"></div>
+      <div class=3D"fg"><div class=3D"fl">Sazba (K=C4=8D/h) *</div><input i=
+d=3D"cl-rate" type=3D"number" placeholder=3D"2000"></div>
+    </div>
+    <div class=3D"fg" style=3D"margin-bottom:8px"><div class=3D"fl">Adresa<=
+/div><input id=3D"cl-address"></div>
+    <div class=3D"fg" style=3D"margin-bottom:8px"><div class=3D"fl">E-mail<=
+/div><input id=3D"cl-email" type=3D"email"></div>
+    <div class=3D"modal-footer">
+      <button class=3D"btn ghost">Zru=C5=A1it</button>
+      <button class=3D"btn primary">Ulo=C5=BEit</button>
+    </div>
+  </div>
+</div>
+
+
+
+
+</body></html>
+------MultipartBoundary--wLneMG4f3G0cRpjqlAMuiYmfhIANJEUnTphw1hnl6s----
+Content-Type: text/css
+Content-Transfer-Encoding: quoted-printable
+Content-Location: https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap
+
+@charset "utf-8";
+
+@font-face { font-family: "IBM Plex Mono"; font-style: normal; font-weight:=
+ 400; font-display: swap; src: url("https://fonts.gstatic.com/s/ibmplexmono=
+/v20/-F63fjptAgt5VM-kVkqdyU8n1iIq129k.woff2") format("woff2"); unicode-rang=
+e: U+460-52F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F; }
+
+@font-face { font-family: "IBM Plex Mono"; font-style: normal; font-weight:=
+ 400; font-display: swap; src: url("https://fonts.gstatic.com/s/ibmplexmono=
+/v20/-F63fjptAgt5VM-kVkqdyU8n1isq129k.woff2") format("woff2"); unicode-rang=
+e: U+301, U+400-45F, U+490-491, U+4B0-4B1, U+2116; }
+
+@font-face { font-family: "IBM Plex Mono"; font-style: normal; font-weight:=
+ 400; font-display: swap; src: url("https://fonts.gstatic.com/s/ibmplexmono=
+/v20/-F63fjptAgt5VM-kVkqdyU8n1iAq129k.woff2") format("woff2"); unicode-rang=
+e: U+102-103, U+110-111, U+128-129, U+168-169, U+1A0-1A1, U+1AF-1B0, U+300-=
+301, U+303-304, U+308-309, U+323, U+329, U+1EA0-1EF9, U+20AB; }
+
+@font-face { font-family: "IBM Plex Mono"; font-style: normal; font-weight:=
+ 400; font-display: swap; src: url("https://fonts.gstatic.com/s/ibmplexmono=
+/v20/-F63fjptAgt5VM-kVkqdyU8n1iEq129k.woff2") format("woff2"); unicode-rang=
+e: U+100-2BA, U+2BD-2C5, U+2C7-2CC, U+2CE-2D7, U+2DD-2FF, U+304, U+308, U+3=
+29, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0=
+, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+
+@font-face { font-family: "IBM Plex Mono"; font-style: normal; font-weight:=
+ 400; font-display: swap; src: url("https://fonts.gstatic.com/s/ibmplexmono=
+/v20/-F63fjptAgt5VM-kVkqdyU8n1i8q1w.woff2") format("woff2"); unicode-range:=
+ U+0-FF, U+131, U+152-153, U+2BB-2BC, U+2C6, U+2DA, U+2DC, U+304, U+308, U+=
+329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U=
++FFFD; }
+
+@font-face { font-family: "IBM Plex Mono"; font-style: normal; font-weight:=
+ 500; font-display: swap; src: url("https://fonts.gstatic.com/s/ibmplexmono=
+/v20/-F6qfjptAgt5VM-kVkqdyU8n3twJwl1FgtIU.woff2") format("woff2"); unicode-=
+range: U+460-52F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2=
+F; }
+
+@font-face { font-family: "IBM Plex Mono"; font-style: normal; font-weight:=
+ 500; font-display: swap; src: url("https://fonts.gstatic.com/s/ibmplexmono=
+/v20/-F6qfjptAgt5VM-kVkqdyU8n3twJwlRFgtIU.woff2") format("woff2"); unicode-=
+range: U+301, U+400-45F, U+490-491, U+4B0-4B1, U+2116; }
+
+@font-face { font-family: "IBM Plex Mono"; font-style: normal; font-weight:=
+ 500; font-display: swap; src: url("https://fonts.gstatic.com/s/ibmplexmono=
+/v20/-F6qfjptAgt5VM-kVkqdyU8n3twJwl9FgtIU.woff2") format("woff2"); unicode-=
+range: U+102-103, U+110-111, U+128-129, U+168-169, U+1A0-1A1, U+1AF-1B0, U+=
+300-301, U+303-304, U+308-309, U+323, U+329, U+1EA0-1EF9, U+20AB; }
+
+@font-face { font-family: "IBM Plex Mono"; font-style: normal; font-weight:=
+ 500; font-display: swap; src: url("https://fonts.gstatic.com/s/ibmplexmono=
+/v20/-F6qfjptAgt5VM-kVkqdyU8n3twJwl5FgtIU.woff2") format("woff2"); unicode-=
+range: U+100-2BA, U+2BD-2C5, U+2C7-2CC, U+2CE-2D7, U+2DD-2FF, U+304, U+308,=
+ U+329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-=
+20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+
+@font-face { font-family: "IBM Plex Mono"; font-style: normal; font-weight:=
+ 500; font-display: swap; src: url("https://fonts.gstatic.com/s/ibmplexmono=
+/v20/-F6qfjptAgt5VM-kVkqdyU8n3twJwlBFgg.woff2") format("woff2"); unicode-ra=
+nge: U+0-FF, U+131, U+152-153, U+2BB-2BC, U+2C6, U+2DA, U+2DC, U+304, U+308=
+, U+329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEF=
+F, U+FFFD; }
+
+@font-face { font-family: "IBM Plex Sans"; font-style: normal; font-weight:=
+ 300; font-stretch: 100%; font-display: swap; src: url("https://fonts.gstat=
+ic.com/s/ibmplexsans/v23/zYXzKVElMYYaJe8bpLHnCwDKr932-G7dytD-Dmu1syxTKYbABA=
+.woff2") format("woff2"); unicode-range: U+460-52F, U+1C80-1C8A, U+20B4, U+=
+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F; }
+
+@font-face { font-family: "IBM Plex Sans"; font-style: normal; font-weight:=
+ 300; font-stretch: 100%; font-display: swap; src: url("https://fonts.gstat=
+ic.com/s/ibmplexsans/v23/zYXzKVElMYYaJe8bpLHnCwDKr932-G7dytD-Dmu1syxaKYbABA=
+.woff2") format("woff2"); unicode-range: U+301, U+400-45F, U+490-491, U+4B0=
+-4B1, U+2116; }
+
+@font-face { font-family: "IBM Plex Sans"; font-style: normal; font-weight:=
+ 300; font-stretch: 100%; font-display: swap; src: url("https://fonts.gstat=
+ic.com/s/ibmplexsans/v23/zYXzKVElMYYaJe8bpLHnCwDKr932-G7dytD-Dmu1syxdKYbABA=
+.woff2") format("woff2"); unicode-range: U+370-377, U+37A-37F, U+384-38A, U=
++38C, U+38E-3A1, U+3A3-3FF; }
+
+@font-face { font-family: "IBM Plex Sans"; font-style: normal; font-weight:=
+ 300; font-stretch: 100%; font-display: swap; src: url("https://fonts.gstat=
+ic.com/s/ibmplexsans/v23/zYXzKVElMYYaJe8bpLHnCwDKr932-G7dytD-Dmu1syxRKYbABA=
+.woff2") format("woff2"); unicode-range: U+102-103, U+110-111, U+128-129, U=
++168-169, U+1A0-1A1, U+1AF-1B0, U+300-301, U+303-304, U+308-309, U+323, U+3=
+29, U+1EA0-1EF9, U+20AB; }
+
+@font-face { font-family: "IBM Plex Sans"; font-style: normal; font-weight:=
+ 300; font-stretch: 100%; font-display: swap; src: url("https://fonts.gstat=
+ic.com/s/ibmplexsans/v23/zYXzKVElMYYaJe8bpLHnCwDKr932-G7dytD-Dmu1syxQKYbABA=
+.woff2") format("woff2"); unicode-range: U+100-2BA, U+2BD-2C5, U+2C7-2CC, U=
++2CE-2D7, U+2DD-2FF, U+304, U+308, U+329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-=
+1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+
+@font-face { font-family: "IBM Plex Sans"; font-style: normal; font-weight:=
+ 300; font-stretch: 100%; font-display: swap; src: url("https://fonts.gstat=
+ic.com/s/ibmplexsans/v23/zYXzKVElMYYaJe8bpLHnCwDKr932-G7dytD-Dmu1syxeKYY.wo=
+ff2") format("woff2"); unicode-range: U+0-FF, U+131, U+152-153, U+2BB-2BC, =
+U+2C6, U+2DA, U+2DC, U+304, U+308, U+329, U+2000-206F, U+20AC, U+2122, U+21=
+91, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+
+@font-face { font-family: "IBM Plex Sans"; font-style: normal; font-weight:=
+ 400; font-stretch: 100%; font-display: swap; src: url("https://fonts.gstat=
+ic.com/s/ibmplexsans/v23/zYXzKVElMYYaJe8bpLHnCwDKr932-G7dytD-Dmu1syxTKYbABA=
+.woff2") format("woff2"); unicode-range: U+460-52F, U+1C80-1C8A, U+20B4, U+=
+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F; }
+
+@font-face { font-family: "IBM Plex Sans"; font-style: normal; font-weight:=
+ 400; font-stretch: 100%; font-display: swap; src: url("https://fonts.gstat=
+ic.com/s/ibmplexsans/v23/zYXzKVElMYYaJe8bpLHnCwDKr932-G7dytD-Dmu1syxaKYbABA=
+.woff2") format("woff2"); unicode-range: U+301, U+400-45F, U+490-491, U+4B0=
+-4B1, U+2116; }
+
+@font-face { font-family: "IBM Plex Sans"; font-style: normal; font-weight:=
+ 400; font-stretch: 100%; font-display: swap; src: url("https://fonts.gstat=
+ic.com/s/ibmplexsans/v23/zYXzKVElMYYaJe8bpLHnCwDKr932-G7dytD-Dmu1syxdKYbABA=
+.woff2") format("woff2"); unicode-range: U+370-377, U+37A-37F, U+384-38A, U=
++38C, U+38E-3A1, U+3A3-3FF; }
+
+@font-face { font-family: "IBM Plex Sans"; font-style: normal; font-weight:=
+ 400; font-stretch: 100%; font-display: swap; src: url("https://fonts.gstat=
+ic.com/s/ibmplexsans/v23/zYXzKVElMYYaJe8bpLHnCwDKr932-G7dytD-Dmu1syxRKYbABA=
+.woff2") format("woff2"); unicode-range: U+102-103, U+110-111, U+128-129, U=
++168-169, U+1A0-1A1, U+1AF-1B0, U+300-301, U+303-304, U+308-309, U+323, U+3=
+29, U+1EA0-1EF9, U+20AB; }
+
+@font-face { font-family: "IBM Plex Sans"; font-style: normal; font-weight:=
+ 400; font-stretch: 100%; font-display: swap; src: url("https://fonts.gstat=
+ic.com/s/ibmplexsans/v23/zYXzKVElMYYaJe8bpLHnCwDKr932-G7dytD-Dmu1syxQKYbABA=
+.woff2") format("woff2"); unicode-range: U+100-2BA, U+2BD-2C5, U+2C7-2CC, U=
++2CE-2D7, U+2DD-2FF, U+304, U+308, U+329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-=
+1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+
+@font-face { font-family: "IBM Plex Sans"; font-style: normal; font-weight:=
+ 400; font-stretch: 100%; font-display: swap; src: url("https://fonts.gstat=
+ic.com/s/ibmplexsans/v23/zYXzKVElMYYaJe8bpLHnCwDKr932-G7dytD-Dmu1syxeKYY.wo=
+ff2") format("woff2"); unicode-range: U+0-FF, U+131, U+152-153, U+2BB-2BC, =
+U+2C6, U+2DA, U+2DC, U+304, U+308, U+329, U+2000-206F, U+20AC, U+2122, U+21=
+91, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+
+@font-face { font-family: "IBM Plex Sans"; font-style: normal; font-weight:=
+ 500; font-stretch: 100%; font-display: swap; src: url("https://fonts.gstat=
+ic.com/s/ibmplexsans/v23/zYXzKVElMYYaJe8bpLHnCwDKr932-G7dytD-Dmu1syxTKYbABA=
+.woff2") format("woff2"); unicode-range: U+460-52F, U+1C80-1C8A, U+20B4, U+=
+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F; }
+
+@font-face { font-family: "IBM Plex Sans"; font-style: normal; font-weight:=
+ 500; font-stretch: 100%; font-display: swap; src: url("https://fonts.gstat=
+ic.com/s/ibmplexsans/v23/zYXzKVElMYYaJe8bpLHnCwDKr932-G7dytD-Dmu1syxaKYbABA=
+.woff2") format("woff2"); unicode-range: U+301, U+400-45F, U+490-491, U+4B0=
+-4B1, U+2116; }
+
+@font-face { font-family: "IBM Plex Sans"; font-style: normal; font-weight:=
+ 500; font-stretch: 100%; font-display: swap; src: url("https://fonts.gstat=
+ic.com/s/ibmplexsans/v23/zYXzKVElMYYaJe8bpLHnCwDKr932-G7dytD-Dmu1syxdKYbABA=
+.woff2") format("woff2"); unicode-range: U+370-377, U+37A-37F, U+384-38A, U=
++38C, U+38E-3A1, U+3A3-3FF; }
+
+@font-face { font-family: "IBM Plex Sans"; font-style: normal; font-weight:=
+ 500; font-stretch: 100%; font-display: swap; src: url("https://fonts.gstat=
+ic.com/s/ibmplexsans/v23/zYXzKVElMYYaJe8bpLHnCwDKr932-G7dytD-Dmu1syxRKYbABA=
+.woff2") format("woff2"); unicode-range: U+102-103, U+110-111, U+128-129, U=
++168-169, U+1A0-1A1, U+1AF-1B0, U+300-301, U+303-304, U+308-309, U+323, U+3=
+29, U+1EA0-1EF9, U+20AB; }
+
+@font-face { font-family: "IBM Plex Sans"; font-style: normal; font-weight:=
+ 500; font-stretch: 100%; font-display: swap; src: url("https://fonts.gstat=
+ic.com/s/ibmplexsans/v23/zYXzKVElMYYaJe8bpLHnCwDKr932-G7dytD-Dmu1syxQKYbABA=
+.woff2") format("woff2"); unicode-range: U+100-2BA, U+2BD-2C5, U+2C7-2CC, U=
++2CE-2D7, U+2DD-2FF, U+304, U+308, U+329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-=
+1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+
+@font-face { font-family: "IBM Plex Sans"; font-style: normal; font-weight:=
+ 500; font-stretch: 100%; font-display: swap; src: url("https://fonts.gstat=
+ic.com/s/ibmplexsans/v23/zYXzKVElMYYaJe8bpLHnCwDKr932-G7dytD-Dmu1syxeKYY.wo=
+ff2") format("woff2"); unicode-range: U+0-FF, U+131, U+152-153, U+2BB-2BC, =
+U+2C6, U+2DA, U+2DC, U+304, U+308, U+329, U+2000-206F, U+20AC, U+2122, U+21=
+91, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+------MultipartBoundary--wLneMG4f3G0cRpjqlAMuiYmfhIANJEUnTphw1hnl6s----
+Content-Type: text/css
+Content-Transfer-Encoding: quoted-printable
+Content-Location: cid:css-fa7c5ce2-0705-415d-b8a5-0123704d5885@mhtml.blink
+
+@charset "utf-8";
+
+*, ::before, ::after { box-sizing: border-box; margin: 0px; padding: 0px; }
+
+:root { --bg: #0a0a0a; --bg2: #111; --bg3: #181818; --bg4: #1e1e1e; --borde=
+r: rgba(255,255,255,0.06); --border2: rgba(255,255,255,0.12); --text: #ece9=
+e0; --muted: #777; --muted2: #444; --green: #00c97a; --green-bg: #061a0e; -=
+-red: #ff4545; --red-bg: #1a0606; --blue: #4d9fff; --blue-bg: #060f1a; --ye=
+llow: #f5c842; --yellow-bg: #1a1500; --accent: #c8ff00; --accent-bg: #11180=
+0; --mono: 'IBM Plex Mono',monospace; --sans: 'IBM Plex Sans',sans-serif; -=
+-radius: 10px; }
+
+html, body { background: var(--bg); color: var(--text); font-family: var(--=
+sans); min-height: 100vh; -webkit-font-smoothing: antialiased; font-size: 1=
+4px; }
+
+input, select, textarea, button { font-family: var(--sans); font-size: 13px=
+; }
+
+.hdr { height: 48px; background: var(--bg2); border-bottom: 1px solid var(-=
+-border); display: flex; align-items: center; justify-content: space-betwee=
+n; padding: 0px 1.25rem; position: sticky; top: 0px; z-index: 100; }
+
+.hdr-logo { display: flex; align-items: center; gap: 10px; font-size: 13px;=
+ font-weight: 500; }
+
+.logo-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--=
+accent); }
+
+.hdr-user { font-size: 12px; color: var(--muted); }
+
+.nav { background: var(--bg2); border-bottom: 1px solid var(--border); padd=
+ing: 0px 1.25rem; display: flex; overflow-x: auto; }
+
+.ntab { padding: 10px 16px; font-size: 13px; color: var(--muted); cursor: p=
+ointer; border-bottom: 2px solid transparent; white-space: nowrap; transiti=
+on: color 0.15s; }
+
+.ntab:hover { color: var(--text); }
+
+.ntab.on { color: var(--text); border-bottom-color: var(--accent); }
+
+.pg { padding: 1.25rem; display: none; max-width: 1400px; margin: 0px auto;=
+ }
+
+.pg.on { display: block; }
+
+.card { background: var(--bg2); border: 1px solid var(--border); border-rad=
+ius: var(--radius); overflow: hidden; margin-bottom: 1rem; }
+
+.ch { padding: 10px 14px; border-bottom: 1px solid var(--border); display: =
+flex; align-items: center; justify-content: space-between; flex-wrap: wrap;=
+ gap: 8px; }
+
+.ct { font-size: 13px; font-weight: 500; display: flex; align-items: center=
+; gap: 7px; }
+
+.cb { padding: 1rem 1.25rem; }
+
+.kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; ma=
+rgin-bottom: 1rem; }
+
+.kpi { background: var(--bg2); border: 1px solid var(--border); border-radi=
+us: var(--radius); padding: 14px; }
+
+.kl { font-size: 11px; color: var(--muted); margin-bottom: 6px; font-family=
+: var(--mono); text-transform: uppercase; letter-spacing: 0.04em; display: =
+flex; align-items: center; gap: 6px; }
+
+.kv { font-size: 22px; font-weight: 500; font-family: var(--mono); }
+
+.kv.g { color: var(--green); }
+
+.kv.b { color: var(--blue); }
+
+.kv.r { color: var(--red); }
+
+.ks { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+.yr-nav { display: flex; align-items: center; gap: 4px; }
+
+.yr-btn { width: 20px; height: 20px; border-width: medium; border-style: no=
+ne; border-color: currentcolor; border-image: none; background: transparent=
+; color: var(--muted); cursor: pointer; font-size: 12px; display: flex; ali=
+gn-items: center; justify-content: center; border-radius: 4px; }
+
+.yr-btn:hover { background: var(--bg3); color: var(--text); }
+
+.yr-label { font-size: 11px; font-family: var(--mono); color: var(--muted);=
+ }
+
+input, select, textarea { padding: 6px 9px; border-radius: 7px; border: 1px=
+ solid var(--border2); background: var(--bg3); color: var(--text); width: 1=
+00%; outline: none; transition: border-color 0.15s; }
+
+input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+
+select option { background: var(--bg3); }
+
+.fg { display: flex; flex-direction: column; gap: 4px; flex: 1 1 0%; }
+
+.fl { font-size: 11px; color: var(--muted); font-family: var(--mono); }
+
+.frow { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+
+.divv { width: 1px; background: var(--border2); align-self: stretch; flex-s=
+hrink: 0; margin: 0px 2px; }
+
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+.btn { padding: 6px 13px; border-radius: 7px; border: 1px solid var(--borde=
+r2); background: var(--bg3); color: var(--text); font-size: 12px; cursor: p=
+ointer; display: inline-flex; align-items: center; gap: 5px; white-space: n=
+owrap; transition: 0.15s; }
+
+.btn:hover { background: var(--bg4); }
+
+.btn.primary { background: var(--text); color: var(--bg); border-color: var=
+(--text); }
+
+.btn.primary:hover { opacity: 0.9; }
+
+.btn.ghost { border-color: var(--border); color: var(--muted); }
+
+.btn.ghost:hover { color: var(--text); border-color: var(--border2); }
+
+.btn.success { background: var(--green-bg); color: var(--green); border-col=
+or: rgba(0, 201, 122, 0.3); }
+
+.ibtn { padding: 4px 7px; border-radius: 6px; border: 1px solid var(--borde=
+r); background: transparent; color: var(--muted); cursor: pointer; font-siz=
+e: 12px; display: inline-flex; align-items: center; transition: 0.15s; }
+
+.ibtn:hover { background: var(--bg3); color: var(--text); }
+
+.ibtn.danger:hover { color: var(--red); }
+
+.save-btn { padding: 0px 18px; height: 34px; border-radius: 7px; border-wid=
+th: medium; border-style: none; border-color: currentcolor; border-image: n=
+one; background: var(--text); color: var(--bg); font-size: 13px; cursor: po=
+inter; font-weight: 500; white-space: nowrap; flex-shrink: 0; }
+
+.save-btn:hover { opacity: 0.9; }
+
+.ac-wrap { position: relative; }
+
+.ac-drop { position: absolute; top: calc(100% + 2px); left: 0px; right: 0px=
+; background: var(--bg3); border: 1px solid var(--border2); border-radius: =
+7px; z-index: 50; max-height: 200px; overflow-y: auto; display: none; }
+
+.ac-drop.open { display: block; }
+
+.ac-item { padding: 8px 10px; cursor: pointer; font-size: 12px; display: fl=
+ex; align-items: center; justify-content: space-between; border-bottom: 1px=
+ solid var(--border); transition: background 0.1s; }
+
+.ac-item:last-child { border-bottom-width: medium; border-bottom-style: non=
+e; border-bottom-color: currentcolor; }
+
+.ac-item:hover { background: var(--bg4); }
+
+.ac-rate { font-size: 11px; color: var(--muted); font-family: var(--mono); =
+}
+
+.qc-btn { padding: 5px 12px; border-radius: 7px; border: 1px solid var(--bo=
+rder2); background: transparent; font-size: 12px; cursor: pointer; color: v=
+ar(--muted); white-space: nowrap; transition: 0.15s; }
+
+.qc-btn:hover { border-color: var(--border2); color: var(--text); }
+
+.qc-btn.on { background: var(--blue-bg); border-color: rgba(77, 159, 255, 0=
+.4); color: var(--blue); }
+
+.days-wrap { display: flex; align-items: center; gap: 6px; flex: 1 1 0%; }
+
+.days-strip { display: flex; gap: 5px; flex: 1 1 0%; }
+
+.day-chip { flex: 1 1 0%; border: 1px solid var(--border); border-radius: 8=
+px; padding: 6px 4px; text-align: center; cursor: pointer; transition: 0.15=
+s; min-width: 0px; }
+
+.day-chip:hover { border-color: var(--border2); background: var(--bg3); }
+
+.day-chip.on { border-color: rgba(77, 159, 255, 0.5); background: var(--blu=
+e-bg); }
+
+.day-name { font-size: 10px; color: var(--muted); font-family: var(--mono);=
+ }
+
+.day-chip.on .day-name { color: var(--blue); }
+
+.day-num { font-size: 12px; font-weight: 500; line-height: 1.4; }
+
+.day-chip.on .day-num { color: var(--blue); }
+
+.day-h { font-size: 10px; margin-top: 2px; display: flex; align-items: cent=
+er; justify-content: center; gap: 2px; font-family: var(--mono); }
+
+.day-h.has { color: var(--green); }
+
+.day-h.no { color: var(--muted2); }
+
+.nav-btn { width: 28px; height: 28px; border-radius: 6px; border: 1px solid=
+ var(--border); background: transparent; cursor: pointer; display: flex; al=
+ign-items: center; justify-content: center; color: var(--muted); font-size:=
+ 13px; transition: 0.15s; }
+
+.nav-btn:hover { background: var(--bg3); color: var(--text); }
+
+.hrs-ctrl { display: flex; align-items: center; border: 1px solid var(--bor=
+der2); border-radius: 7px; overflow: hidden; background: var(--bg3); }
+
+.hbtn { width: 32px; height: 34px; border-width: medium; border-style: none=
+; border-color: currentcolor; border-image: none; background: transparent; =
+cursor: pointer; color: var(--muted); display: flex; align-items: center; j=
+ustify-content: center; font-size: 16px; transition: background 0.1s; }
+
+.hbtn:hover { background: var(--bg4); }
+
+.hval { width: 52px; border-width: medium; border-style: none; border-color=
+: currentcolor; border-image: none; text-align: center; font-size: 14px; fo=
+nt-weight: 500; background: transparent; color: var(--text); outline: none;=
+ font-family: var(--mono); }
+
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+
+th { font-size: 11px; color: var(--muted); padding: 7px 10px; text-align: l=
+eft; border-bottom: 1px solid var(--border2); font-weight: 400; white-space=
+: nowrap; font-family: var(--mono); text-transform: uppercase; letter-spaci=
+ng: 0.04em; }
+
+td { padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-al=
+ign: middle; }
+
+tr:last-child td { border-bottom-width: medium; border-bottom-style: none; =
+border-bottom-color: currentcolor; }
+
+tbody tr:hover td { background: rgba(255, 255, 255, 0.02); }
+
+.tr { text-align: right; }
+
+.mono { font-family: var(--mono); font-size: 12px; }
+
+.muted { color: var(--muted); font-size: 12px; }
+
+.badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-r=
+adius: 20px; font-family: var(--mono); }
+
+.badge.new { background: var(--blue-bg); color: var(--blue); border: 1px so=
+lid rgba(77, 159, 255, 0.2); }
+
+.badge.inv { background: var(--green-bg); color: var(--green); border: 1px =
+solid rgba(0, 201, 122, 0.2); }
+
+.badge.open { background: var(--yellow-bg); color: var(--yellow); border: 1=
+px solid rgba(245, 200, 66, 0.2); }
+
+.badge.paid { background: var(--green-bg); color: var(--green); border: 1px=
+ solid rgba(0, 201, 122, 0.2); }
+
+.badge.draft { background: var(--bg3); color: var(--muted); border: 1px sol=
+id var(--border); }
+
+.chk { width: 16px; height: 16px; border-radius: 3px; border: 1px solid var=
+(--border2); display: inline-flex; align-items: center; justify-content: ce=
+nter; cursor: pointer; background: var(--bg3); flex-shrink: 0; transition: =
+0.15s; }
+
+.chk.on { background: var(--blue); border-color: var(--blue); color: var(--=
+bg); }
+
+.inv-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+.preview { border: 1px solid var(--border2); border-radius: var(--radius); =
+padding: 1.25rem; background: var(--bg); font-size: 12px; line-height: 1.6;=
+ }
+
+.inv-head { display: flex; justify-content: space-between; align-items: fle=
+x-start; margin-bottom: 1rem; }
+
+.inv-ttl { font-size: 18px; font-weight: 500; }
+
+.inv-num { font-size: 12px; color: var(--muted); margin-top: 3px; font-fami=
+ly: var(--mono); }
+
+.inv-meta { font-size: 11px; color: var(--muted); text-align: right; line-h=
+eight: 1.8; }
+
+.inv-parties { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; ma=
+rgin-bottom: 1rem; }
+
+.plbl { font-size: 10px; color: var(--muted); text-transform: uppercase; le=
+tter-spacing: 0.08em; margin-bottom: 3px; font-family: var(--mono); }
+
+.pname { font-size: 13px; font-weight: 500; margin-bottom: 2px; }
+
+.pdet { font-size: 11px; color: var(--muted); line-height: 1.6; }
+
+.inv-tbl { width: 100%; border-collapse: collapse; font-size: 11px; margin-=
+bottom: 10px; }
+
+.inv-tbl th { padding: 4px 6px; border-bottom: 1px solid var(--border); fon=
+t-weight: 400; color: var(--muted); text-align: left; text-transform: none;=
+ letter-spacing: 0px; font-family: var(--sans); }
+
+.inv-tbl td { padding: 5px 6px; border-bottom: 1px solid var(--border); }
+
+.inv-tbl td:last-child { text-align: right; }
+
+.inv-total { text-align: right; }
+
+.inv-tline { display: flex; justify-content: flex-end; gap: 20px; padding: =
+2px 0px; font-size: 12px; }
+
+.inv-tline.fin { font-weight: 500; font-size: 14px; border-top: 1px solid v=
+ar(--border2); padding-top: 6px; margin-top: 4px; }
+
+.inv-bank { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(=
+--border); font-size: 11px; color: var(--muted); line-height: 1.7; }
+
+.cl-card { background: var(--bg2); border: 1px solid var(--border); border-=
+radius: var(--radius); padding: 10px 12px; display: flex; align-items: cent=
+er; gap: 10px; margin-bottom: 6px; }
+
+.cl-init { width: 32px; height: 32px; border-radius: 50%; background: var(-=
+-blue-bg); color: var(--blue); border: 1px solid rgba(77, 159, 255, 0.2); d=
+isplay: flex; align-items: center; justify-content: center; font-size: 12px=
+; font-weight: 500; flex-shrink: 0; font-family: var(--mono); }
+
+.cl-add { border: 1px dashed var(--border2); border-radius: var(--radius); =
+padding: 12px; text-align: center; cursor: pointer; color: var(--muted); fo=
+nt-size: 12px; transition: background 0.15s; }
+
+.cl-add:hover { background: var(--bg3); }
+
+.modal-overlay { position: fixed; inset: 0px; background: rgba(0, 0, 0, 0.7=
+5); z-index: 200; display: none; align-items: center; justify-content: cent=
+er; }
+
+.modal-overlay.open { display: flex; }
+
+.modal { background: var(--bg2); border: 1px solid var(--border2); border-r=
+adius: var(--radius); padding: 1.5rem; width: 100%; max-width: 400px; }
+
+.modal-title { font-size: 14px; font-weight: 500; margin-bottom: 1rem; }
+
+.modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-=
+top: 1rem; }
+
+.toast { position: fixed; bottom: 1.5rem; right: 1.5rem; background: var(--=
+bg3); border: 1px solid var(--border2); border-radius: var(--radius); paddi=
+ng: 10px 16px; font-size: 13px; z-index: 300; opacity: 0; transform: transl=
+ateY(10px); transition: 0.25s; pointer-events: none; }
+
+.toast.show { opacity: 1; transform: translateY(0px); }
+
+.toast.success { border-color: rgba(0, 201, 122, 0.4); color: var(--green);=
+ }
+
+.toast.error { border-color: rgba(255, 69, 69, 0.4); color: var(--red); }
+
+.loading-msg { padding: 2rem; text-align: center; color: var(--muted); font=
+-family: var(--mono); font-size: 12px; }
+
+.spinner { display: inline-block; width: 14px; height: 14px; border-top-sty=
+le: ; border-top-width: ; border-right-color: ; border-right-style: ; borde=
+r-right-width: ; border-bottom-color: ; border-bottom-style: ; border-botto=
+m-width: ; border-left-color: ; border-left-style: ; border-left-width: ; b=
+order-image-source: ; border-image-slice: ; border-image-width: ; border-im=
+age-outset: ; border-image-repeat: ; border-top-color: var(--accent); borde=
+r-radius: 50%; animation: 0.7s linear 0s infinite normal none running spin;=
+ }
+
+@keyframes spin {=20
+  100% { transform: rotate(360deg); }
+}
+
+.upzone { border: 1px dashed var(--border2); border-radius: 7px; padding: 1=
+4px; text-align: center; cursor: pointer; color: var(--muted); font-size: 1=
+2px; transition: background 0.15s; margin-bottom: 10px; }
+
+.upzone:hover { background: var(--bg3); }
+
+@media (max-width: 900px) {
+  .kpis { grid-template-columns: 1fr 1fr; }
+  .inv-layout { grid-template-columns: 1fr; }
+  .days-strip .day-chip:nth-child(n+5) { display: none; }
+}
+
+@media (max-width: 600px) {
+  .kpis { grid-template-columns: 1fr; }
+  .hdr { padding: 0px 1rem; }
+  .pg { padding: 1rem; }
+}
+------MultipartBoundary--wLneMG4f3G0cRpjqlAMuiYmfhIANJEUnTphw1hnl6s------
