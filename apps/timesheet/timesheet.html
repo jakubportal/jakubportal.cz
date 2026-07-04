@@ -1,0 +1,1298 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Timesheet — Jakub Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0a;--bg2:#111;--bg3:#181818;--bg4:#1e1e1e;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.12);
+  --text:#ece9e0;--muted:#777;--muted2:#444;
+  --green:#00c97a;--green-bg:#061a0e;
+  --red:#ff4545;--red-bg:#1a0606;
+  --blue:#4d9fff;--blue-bg:#060f1a;
+  --yellow:#f5c842;--yellow-bg:#1a1500;
+  --accent:#c8ff00;--accent-bg:#111800;
+  --mono:'IBM Plex Mono',monospace;
+  --sans:'IBM Plex Sans',sans-serif;
+  --radius:10px;
+}
+html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;-webkit-font-smoothing:antialiased;font-size:14px}
+input,select,textarea,button{font-family:var(--sans);font-size:13px}
+
+/* HEADER */
+.hdr{height:48px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 1.25rem;position:sticky;top:0;z-index:100}
+.hdr-logo{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:500}
+.logo-dot{width:7px;height:7px;border-radius:50%;background:var(--accent)}
+.hdr-user{font-size:12px;color:var(--muted)}
+
+/* NAV */
+.nav{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 1.25rem;display:flex;overflow-x:auto}
+.ntab{padding:10px 16px;font-size:13px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:color 0.15s}
+.ntab:hover{color:var(--text)}
+.ntab.on{color:var(--text);border-bottom-color:var(--accent)}
+
+/* CONTENT */
+.pg{padding:1.25rem;display:none;max-width:1400px;margin:0 auto}
+.pg.on{display:block}
+
+/* CARDS */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:1rem}
+.ch{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.ct{font-size:13px;font-weight:500;display:flex;align-items:center;gap:7px}
+.cb{padding:1rem 1.25rem}
+
+/* KPI */
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1rem}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
+.kl{font-size:11px;color:var(--muted);margin-bottom:6px;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.04em;display:flex;align-items:center;gap:6px}
+.kv{font-size:22px;font-weight:500;font-family:var(--mono)}
+.kv.g{color:var(--green)}
+.kv.b{color:var(--blue)}
+.kv.r{color:var(--red)}
+.ks{font-size:11px;color:var(--muted);margin-top:4px}
+.yr-nav{display:flex;align-items:center;gap:4px}
+.yr-btn{width:20px;height:20px;border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;border-radius:4px}
+.yr-btn:hover{background:var(--bg3);color:var(--text)}
+.yr-label{font-size:11px;font-family:var(--mono);color:var(--muted)}
+
+/* FORM */
+input,select,textarea{padding:6px 9px;border-radius:7px;border:1px solid var(--border2);background:var(--bg3);color:var(--text);width:100%;outline:none;transition:border-color 0.15s}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+select option{background:var(--bg3)}
+.fg{display:flex;flex-direction:column;gap:4px;flex:1}
+.fl{font-size:11px;color:var(--muted);font-family:var(--mono)}
+.frow{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+.divv{width:1px;background:var(--border2);align-self:stretch;flex-shrink:0;margin:0 2px}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+/* BUTTONS */
+.btn{padding:6px 13px;border-radius:7px;border:1px solid var(--border2);background:var(--bg3);color:var(--text);font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;transition:all 0.15s}
+.btn:hover{background:var(--bg4)}
+.btn.primary{background:var(--text);color:var(--bg);border-color:var(--text)}
+.btn.primary:hover{opacity:0.9}
+.btn.ghost{border-color:var(--border);color:var(--muted)}
+.btn.ghost:hover{color:var(--text);border-color:var(--border2)}
+.btn.success{background:var(--green-bg);color:var(--green);border-color:rgba(0,201,122,0.3)}
+.ibtn{padding:4px 7px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:12px;display:inline-flex;align-items:center;transition:all 0.15s}
+.ibtn:hover{background:var(--bg3);color:var(--text)}
+.ibtn.danger:hover{color:var(--red)}
+.save-btn{padding:0 18px;height:34px;border-radius:7px;border:none;background:var(--text);color:var(--bg);font-size:13px;cursor:pointer;font-weight:500;white-space:nowrap;flex-shrink:0}
+.save-btn:hover{opacity:0.9}
+
+/* AUTOCOMPLETE */
+.ac-wrap{position:relative}
+.ac-drop{position:absolute;top:calc(100% + 2px);left:0;right:0;background:var(--bg3);border:1px solid var(--border2);border-radius:7px;z-index:50;max-height:200px;overflow-y:auto;display:none}
+.ac-drop.open{display:block}
+.ac-item{padding:8px 10px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);transition:background 0.1s}
+.ac-item:last-child{border-bottom:none}
+.ac-item:hover{background:var(--bg4)}
+.ac-rate{font-size:11px;color:var(--muted);font-family:var(--mono)}
+
+/* QUICK CLIENTS */
+.qc-btn{padding:5px 12px;border-radius:7px;border:1px solid var(--border2);background:transparent;font-size:12px;cursor:pointer;color:var(--muted);white-space:nowrap;transition:all 0.15s}
+.qc-btn:hover{border-color:var(--border2);color:var(--text)}
+.qc-btn.on{background:var(--blue-bg);border-color:rgba(77,159,255,0.4);color:var(--blue)}
+
+/* DAYS STRIP */
+.days-wrap{display:flex;align-items:center;gap:6px;flex:1}
+.days-strip{display:flex;gap:5px;flex:1}
+.day-chip{flex:1;border:1px solid var(--border);border-radius:8px;padding:6px 4px;text-align:center;cursor:pointer;transition:all 0.15s;min-width:0}
+.day-chip:hover{border-color:var(--border2);background:var(--bg3)}
+.day-chip.on{border-color:rgba(77,159,255,0.5);background:var(--blue-bg)}
+.day-name{font-size:10px;color:var(--muted);font-family:var(--mono)}
+.day-chip.on .day-name{color:var(--blue)}
+.day-num{font-size:12px;font-weight:500;line-height:1.4}
+.day-chip.on .day-num{color:var(--blue)}
+.day-h{font-size:10px;margin-top:2px;display:flex;align-items:center;justify-content:center;gap:2px;font-family:var(--mono)}
+.day-h.has{color:var(--green)}
+.day-h.no{color:var(--muted2)}
+.nav-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;transition:all 0.15s}
+.nav-btn:hover{background:var(--bg3);color:var(--text)}
+
+/* HOURS CTRL */
+.hrs-ctrl{display:flex;align-items:center;border:1px solid var(--border2);border-radius:7px;overflow:hidden;background:var(--bg3)}
+.hbtn{width:32px;height:34px;border:none;background:transparent;cursor:pointer;color:var(--muted);display:flex;align-items:center;justify-content:center;font-size:16px;transition:background 0.1s}
+.hbtn:hover{background:var(--bg4)}
+.hval{width:52px;border:none;text-align:center;font-size:14px;font-weight:500;background:transparent;color:var(--text);outline:none;font-family:var(--mono)}
+
+/* TABLES */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font-size:11px;color:var(--muted);padding:7px 10px;text-align:left;border-bottom:1px solid var(--border2);font-weight:400;white-space:nowrap;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.04em}
+td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:rgba(255,255,255,0.02)}
+.tr{text-align:right}
+.mono{font-family:var(--mono);font-size:12px}
+.muted{color:var(--muted);font-size:12px}
+
+/* BADGES */
+.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;font-family:var(--mono)}
+.badge.new{background:var(--blue-bg);color:var(--blue);border:1px solid rgba(77,159,255,0.2)}
+.badge.inv{background:var(--green-bg);color:var(--green);border:1px solid rgba(0,201,122,0.2)}
+.badge.open{background:var(--yellow-bg);color:var(--yellow);border:1px solid rgba(245,200,66,0.2)}
+.badge.paid{background:var(--green-bg);color:var(--green);border:1px solid rgba(0,201,122,0.2)}
+.badge.draft{background:var(--bg3);color:var(--muted);border:1px solid var(--border)}
+
+/* CHECK */
+.chk{width:16px;height:16px;border-radius:3px;border:1px solid var(--border2);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:var(--bg3);flex-shrink:0;transition:all 0.15s}
+.chk.on{background:var(--blue);border-color:var(--blue);color:var(--bg)}
+
+/* INVOICE LAYOUT */
+.inv-layout{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.preview{border:1px solid var(--border2);border-radius:var(--radius);padding:1.25rem;background:var(--bg);font-size:12px;line-height:1.6}
+.inv-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem}
+.inv-ttl{font-size:18px;font-weight:500}
+.inv-num{font-size:12px;color:var(--muted);margin-top:3px;font-family:var(--mono)}
+.inv-meta{font-size:11px;color:var(--muted);text-align:right;line-height:1.8}
+.inv-parties{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+.plbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px;font-family:var(--mono)}
+.pname{font-size:13px;font-weight:500;margin-bottom:2px}
+.pdet{font-size:11px;color:var(--muted);line-height:1.6}
+.inv-tbl{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:10px}
+.inv-tbl th{padding:4px 6px;border-bottom:1px solid var(--border);font-weight:400;color:var(--muted);text-align:left;text-transform:none;letter-spacing:0;font-family:var(--sans)}
+.inv-tbl td{padding:5px 6px;border-bottom:1px solid var(--border)}
+.inv-tbl td:last-child{text-align:right}
+.inv-total{text-align:right}
+.inv-tline{display:flex;justify-content:flex-end;gap:20px;padding:2px 0;font-size:12px}
+.inv-tline.fin{font-weight:500;font-size:14px;border-top:1px solid var(--border2);padding-top:6px;margin-top:4px}
+.inv-bank{margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);line-height:1.7}
+
+/* CLIENT CARDS */
+.cl-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.cl-init{width:32px;height:32px;border-radius:50%;background:var(--blue-bg);color:var(--blue);border:1px solid rgba(77,159,255,0.2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;flex-shrink:0;font-family:var(--mono)}
+.cl-add{border:1px dashed var(--border2);border-radius:var(--radius);padding:12px;text-align:center;cursor:pointer;color:var(--muted);font-size:12px;transition:background 0.15s}
+.cl-add:hover{background:var(--bg3)}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:200;display:none;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);padding:1.5rem;width:100%;max-width:400px}
+.modal-title{font-size:14px;font-weight:500;margin-bottom:1rem}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:1rem}
+
+/* TOAST */
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);padding:10px 16px;font-size:13px;z-index:300;opacity:0;transform:translateY(10px);transition:all 0.25s;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.success{border-color:rgba(0,201,122,0.4);color:var(--green)}
+.toast.error{border-color:rgba(255,69,69,0.4);color:var(--red)}
+
+/* LOADING */
+.loading-msg{padding:2rem;text-align:center;color:var(--muted);font-family:var(--mono);font-size:12px}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* UPZONE */
+.upzone{border:1px dashed var(--border2);border-radius:7px;padding:14px;text-align:center;cursor:pointer;color:var(--muted);font-size:12px;transition:background 0.15s;margin-bottom:10px}
+.upzone:hover{background:var(--bg3)}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .kpis{grid-template-columns:1fr 1fr}
+  .inv-layout{grid-template-columns:1fr}
+  .days-strip .day-chip:nth-child(n+5){display:none}
+}
+@media(max-width:600px){
+  .kpis{grid-template-columns:1fr}
+  .hdr{padding:0 1rem}
+  .pg{padding:1rem}
+}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-logo">
+    <div class="logo-dot"></div>
+    <span>Timesheet</span>
+  </div>
+  <div class="hdr-user" id="hdr-name">Jakub Vršecký OSVČ</div>
+</div>
+
+<!-- NAV -->
+<div class="nav">
+  <div class="ntab on" id="nav-ts" onclick="showTab('ts',this)">⏱ Timesheet</div>
+  <div class="ntab" id="nav-inv" onclick="showTab('inv',this)">📄 Nová faktura</div>
+  <div class="ntab" id="nav-list" onclick="showTab('list',this)">📋 Vydané faktury</div>
+  <div class="ntab" id="nav-set" onclick="showTab('set',this)">⚙️ Nastavení</div>
+</div>
+
+<!-- ===== TIMESHEET ===== -->
+<div class="pg on" id="tab-ts">
+
+  <!-- KPI -->
+  <div class="kpis">
+    <div class="kpi">
+      <div class="kl">Tento měsíc</div>
+      <div class="kv b" id="kpi-month-h">—</div>
+      <div class="ks" id="kpi-month-sub"></div>
+    </div>
+    <div class="kpi">
+      <div class="kl">Nezafakturováno</div>
+      <div class="kv b" id="kpi-uninv-h">—</div>
+      <div class="ks" id="kpi-uninv-sub"></div>
+    </div>
+    <div class="kpi">
+      <div class="kl">
+        <div class="yr-nav">
+          <button class="yr-btn" onclick="shiftKpiYear(-1)">‹</button>
+          <span class="yr-label" id="kpi-year-label">2025</span>
+          <button class="yr-btn" onclick="shiftKpiYear(1)">›</button>
+        </div>
+        Fakturace
+      </div>
+      <div class="kv g" id="kpi-inv-total">—</div>
+      <div class="ks" id="kpi-inv-sub"></div>
+    </div>
+  </div>
+
+  <!-- NOVÝ ZÁZNAM -->
+  <div class="card">
+    <div class="ch"><div class="ct">➕ Nový záznam</div></div>
+    <div class="cb" style="display:flex;flex-direction:column;gap:12px">
+
+      <!-- Řada 1: klient -->
+      <div class="frow">
+        <div class="fg" style="max-width:220px">
+          <div class="fl">Klient</div>
+          <div class="ac-wrap">
+            <input id="ent-client" placeholder="začni psát…" autocomplete="off"
+              oninput="filterClientAC(this.value)"
+              onfocus="openClientAC()"
+              onblur="setTimeout(closeClientAC,200)"/>
+            <div class="ac-drop" id="ac-clients"></div>
+          </div>
+        </div>
+        <div class="divv"></div>
+        <div class="fg">
+          <div class="fl">Nejčastější</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap" id="quick-clients"></div>
+        </div>
+        <div style="margin-left:auto;font-size:12px;color:var(--muted);align-self:center;white-space:nowrap">
+          sazba: <strong id="rate-display" style="color:var(--text);font-family:var(--mono)">—</strong>
+        </div>
+      </div>
+
+      <!-- Řada 2: den -->
+      <div class="frow">
+        <div class="fg" style="max-width:160px">
+          <div class="fl">Datum</div>
+          <input type="date" id="ent-date" onchange="syncDateFromInput(this.value)"/>
+        </div>
+        <div class="divv"></div>
+        <div class="fg" style="flex:1">
+          <div class="fl">Rychlý výběr</div>
+          <div class="days-wrap">
+            <button class="nav-btn" onclick="shiftWeek(-1)">‹</button>
+            <div class="days-strip" id="days-strip"></div>
+            <button class="nav-btn" onclick="shiftWeek(1)">›</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Řada 3: hodiny + popis -->
+      <div class="frow" style="align-items:flex-end">
+        <div class="fg" style="max-width:130px">
+          <div class="fl">Hodiny</div>
+          <div class="hrs-ctrl">
+            <button class="hbtn" onclick="changeHours(-0.25)">−</button>
+            <input class="hval" id="ent-hours" value="1,00" onchange="parseHoursInput(this.value)"/>
+            <button class="hbtn" onclick="changeHours(0.25)">+</button>
+          </div>
+          <div style="font-size:10px;color:var(--muted);text-align:center;margin-top:2px;font-family:var(--mono)">± 15 min</div>
+        </div>
+        <div class="divv"></div>
+        <div class="fg" style="flex:1">
+          <div class="fl">Popis práce</div>
+          <input id="ent-desc" placeholder="co jsi dělal…" onkeydown="if(event.key==='Enter')saveEntry()"/>
+        </div>
+        <button class="save-btn" onclick="saveEntry()">Přidat ✓</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ZÁZNAMY DNE -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;font-size:12px;color:var(--muted)">
+    <span>📅 Záznamy — <strong id="day-label" style="color:var(--text)">dnes</strong></span>
+    <span id="day-total" style="color:var(--text);font-weight:500;font-family:var(--mono)"></span>
+  </div>
+  <div class="card" id="day-entries-card">
+    <div id="day-entries"><div class="loading-msg">žádné záznamy pro tento den</div></div>
+  </div>
+
+  <!-- PŘEHLED MĚSÍCE -->
+  <div class="card">
+    <div class="ch">
+      <div class="ct">📊 Přehled</div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <select id="filter-month" onchange="loadMonthEntries()" style="font-size:12px;padding:4px 8px"></select>
+        <select id="filter-client" onchange="filterTable()" style="font-size:12px;padding:4px 8px">
+          <option value="">Všichni klienti</option>
+        </select>
+        <button class="btn ghost" onclick="exportTimesheetExcel()">📥 Export</button>
+      </div>
+    </div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead><tr><th>Datum</th><th>Klient</th><th>Popis</th><th class="tr">Hodiny</th><th class="tr">Sazba</th><th class="tr">Částka</th><th>Stav</th><th></th></tr></thead>
+        <tbody id="month-body"><tr><td colspan="8" class="loading-msg"><span class="spinner"></span> načítám…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ===== NOVÁ FAKTURA ===== -->
+<div class="pg" id="tab-inv">
+  <div class="inv-layout">
+    <!-- FORMULÁŘ -->
+    <div>
+      <div class="card">
+        <div class="ch"><div class="ct">👤 Klient</div></div>
+        <div class="cb">
+          <select id="inv-client" onchange="onInvClientChange()" style="font-size:13px;margin-bottom:0">
+            <option value="">— vyber klienta —</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch">
+          <div class="ct">⏱ Výběr hodin k fakturaci</div>
+          <span id="inv-selected-info" style="font-size:11px;color:var(--muted)"></span>
+        </div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr><th style="width:32px"></th><th>Datum</th><th>Popis</th><th class="tr">h</th><th class="tr">Částka</th></tr></thead>
+            <tbody id="inv-entries-body"><tr><td colspan="5" class="loading-msg">Vyber klienta</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><div class="ct">📄 Faktura</div></div>
+        <div class="cb">
+          <div class="split" style="margin-bottom:8px">
+            <div class="fg"><div class="fl">Číslo faktury</div><input id="inv-number" readonly style="background:var(--bg3);opacity:0.7"/></div>
+            <div class="fg"><div class="fl">Datum vystavení</div><input type="date" id="inv-issued" oninput="updatePreview()"/></div>
+          </div>
+          <div class="split" style="margin-bottom:8px">
+            <div class="fg"><div class="fl">Datum splatnosti</div><input type="date" id="inv-due" oninput="updatePreview()"/></div>
+            <div class="fg"><div class="fl">Způsob platby</div>
+              <select id="inv-payment" onchange="updatePreview()">
+                <option value="transfer">Převodem</option>
+                <option value="cash">Hotově</option>
+              </select>
+            </div>
+          </div>
+          <div class="fg" style="margin-bottom:10px">
+            <div class="fl">Poznámka</div>
+            <textarea id="inv-note" rows="2" placeholder="volitelná poznámka…" oninput="updatePreview()"></textarea>
+          </div>
+          <div class="upzone" onclick="document.getElementById('inv-file').click()">
+            📎 Přidat přílohu (PDF, foto…)
+          </div>
+          <input type="file" id="inv-file" style="display:none" multiple/>
+          <div id="inv-attachments"></div>
+          <button class="btn primary" style="width:100%;justify-content:center;padding:9px" onclick="saveInvoice()">
+            Vystavit fakturu
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- NÁHLED -->
+    <div>
+      <div class="card">
+        <div class="ch">
+          <div class="ct">👁 Náhled <span style="font-size:10px;background:var(--yellow-bg);color:var(--yellow);padding:2px 8px;border-radius:20px;margin-left:4px">živý</span></div>
+          <button class="btn ghost" onclick="printInvoice()">🖨 Tisk / PDF</button>
+        </div>
+        <div class="cb">
+          <div class="preview" id="invoice-preview">
+            <div class="inv-head">
+              <div><div class="inv-ttl">Faktura</div><div class="inv-num" id="prev-num">—</div></div>
+              <div class="inv-meta" id="prev-meta"></div>
+            </div>
+            <div class="inv-parties">
+              <div>
+                <div class="plbl">Dodavatel</div>
+                <div class="pname" id="prev-sup-name">—</div>
+                <div class="pdet" id="prev-sup-det"></div>
+              </div>
+              <div>
+                <div class="plbl">Odběratel</div>
+                <div class="pname" id="prev-cl-name">—</div>
+                <div class="pdet" id="prev-cl-det"></div>
+              </div>
+            </div>
+            <table class="inv-tbl">
+              <thead><tr><th>Popis</th><th>Datum</th><th>Hodiny</th><th>Sazba</th><th>Částka</th></tr></thead>
+              <tbody id="prev-items"></tbody>
+            </table>
+            <div class="inv-total">
+              <div class="inv-tline fin"><span>Celkem k úhradě</span><span id="prev-total">0 Kč</span></div>
+            </div>
+            <div class="inv-bank" id="prev-bank"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== VYDANÉ FAKTURY ===== -->
+<div class="pg" id="tab-list">
+  <div class="kpis">
+    <div class="kpi"><div class="kl">Celkem vydáno</div><div class="kv b" id="list-kpi-total">—</div></div>
+    <div class="kpi"><div class="kl">Uhrazeno</div><div class="kv g" id="list-kpi-paid">—</div></div>
+    <div class="kpi"><div class="kl">Čeká na úhradu</div><div class="kv r" id="list-kpi-open">—</div></div>
+  </div>
+  <div class="card">
+    <div class="ch">
+      <div style="display:flex;gap:8px">
+        <input placeholder="Hledat…" style="width:180px;font-size:12px" oninput="filterInvoiceList(this.value)"/>
+        <select onchange="filterInvoiceStatus(this.value)" style="font-size:12px;padding:4px 8px">
+          <option value="">Všechny stavy</option>
+          <option value="open">Otevřené</option>
+          <option value="paid">Uhrazené</option>
+        </select>
+      </div>
+      <button class="btn ghost" onclick="exportInvoicesExcel()">📥 Export Excel</button>
+    </div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead><tr><th>Číslo</th><th>Klient</th><th>Vystavena</th><th>Splatnost</th><th class="tr">Částka</th><th>Stav</th><th></th></tr></thead>
+        <tbody id="list-body"><tr><td colspan="7" class="loading-msg"><span class="spinner"></span> načítám…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ===== NASTAVENÍ ===== -->
+<div class="pg" id="tab-set">
+  <div class="split" style="margin-bottom:1rem">
+    <div class="card">
+      <div class="ch"><div class="ct">👤 Moje údaje</div></div>
+      <div class="cb" style="display:flex;flex-direction:column;gap:8px">
+        <div class="fg"><div class="fl">Jméno / název</div><input id="set-name"/></div>
+        <div class="split">
+          <div class="fg"><div class="fl">IČO</div><input id="set-ico"/></div>
+          <div class="fg"><div class="fl">Prefix faktury</div><input id="set-prefix" value="FV"/></div>
+        </div>
+        <div class="fg"><div class="fl">Adresa</div><input id="set-address"/></div>
+        <div class="fg"><div class="fl">Číslo účtu</div><input id="set-bank"/></div>
+        <div class="fg"><div class="fl">IBAN</div><input id="set-iban"/></div>
+        <div class="fg"><div class="fl">Splatnost (dní)</div><input id="set-due" type="number" value="14" style="width:80px"/></div>
+        <div class="fg"><div class="fl">Text zápatí</div><textarea id="set-footer" rows="2"></textarea></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ch">
+        <div class="ct">🏢 Klienti</div>
+        <button class="btn ghost" onclick="openClientModal(null)">+ Přidat</button>
+      </div>
+      <div class="cb" id="clients-list">
+        <div class="loading-msg"><span class="spinner"></span></div>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex;justify-content:flex-end">
+    <button class="btn primary" onclick="saveSettings()">💾 Uložit nastavení</button>
+  </div>
+</div>
+
+<!-- MODAL: KLIENT -->
+<div class="modal-overlay" id="modal-client">
+  <div class="modal">
+    <div class="modal-title" id="modal-cl-title">Nový klient</div>
+    <div class="fg" style="margin-bottom:8px"><div class="fl">Název *</div><input id="cl-name"/></div>
+    <div class="split" style="margin-bottom:8px">
+      <div class="fg"><div class="fl">IČO</div><input id="cl-ico"/></div>
+      <div class="fg"><div class="fl">Sazba (Kč/h) *</div><input id="cl-rate" type="number" placeholder="2000"/></div>
+    </div>
+    <div class="fg" style="margin-bottom:8px"><div class="fl">Adresa</div><input id="cl-address"/></div>
+    <div class="fg" style="margin-bottom:8px"><div class="fl">E-mail</div><input id="cl-email" type="email"/></div>
+    <div class="modal-footer">
+      <button class="btn ghost" onclick="closeModal('modal-client')">Zrušit</button>
+      <button class="btn primary" onclick="saveClient()">Uložit</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://dsppzfebyflyfqqnunrh.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_kdPvjBIIhiD-pzQA-RL0DQ_7FaSyuip';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ============================================================
+// STATE
+// ============================================================
+let allClients = [];
+let allEntries = [];
+let monthEntries = [];
+let allInvoices = [];
+let settings = null;
+let selectedClientId = null;
+let selectedClientName = '';
+let selectedClientRate = 0;
+let selectedDate = '';
+let hours = 1.0;
+let weekOffset = 0;
+let kpiYear = new Date().getFullYear();
+let editingClientId = null;
+let invSelectedEntries = new Set();
+let invClientId = null;
+let invClientEntries = [];
+
+const DAYS_CZ = ['Ne','Po','Út','St','Čt','Pá','So'];
+const MONTHS_CZ = ['Leden','Únor','Březen','Duben','Květen','Červen','Červenec','Srpen','Září','Říjen','Listopad','Prosinec'];
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', async () => {
+  const today = new Date();
+  selectedDate = today.toISOString().split('T')[0];
+  document.getElementById('ent-date').value = selectedDate;
+  await loadSettings();
+  await loadClients();
+  await loadAllEntries();
+  await loadInvoices();
+  initMonthFilter();
+  renderDaysStrip();
+  renderDayEntries();
+  updateKPIs();
+  initInvoiceForm();
+});
+
+// ============================================================
+// SETTINGS
+// ============================================================
+async function loadSettings() {
+  const { data } = await sb.from('ts_settings').select('*').limit(1).single();
+  settings = data;
+  if (settings) {
+    document.getElementById('set-name').value = settings.name || '';
+    document.getElementById('set-ico').value = settings.ico || '';
+    document.getElementById('set-prefix').value = settings.invoice_prefix || 'FV';
+    document.getElementById('set-address').value = settings.address || '';
+    document.getElementById('set-bank').value = settings.bank_account || '';
+    document.getElementById('set-iban').value = settings.iban || '';
+    document.getElementById('set-due').value = settings.invoice_days_due || 14;
+    document.getElementById('set-footer').value = settings.footer_text || '';
+    document.getElementById('hdr-name').textContent = (settings.name || 'Jakub Vršecký') + ' OSVČ';
+    updatePreviewSupplier();
+  }
+}
+
+async function saveSettings() {
+  const data = {
+    name: document.getElementById('set-name').value.trim(),
+    ico: document.getElementById('set-ico').value.trim(),
+    invoice_prefix: document.getElementById('set-prefix').value.trim() || 'FV',
+    address: document.getElementById('set-address').value.trim(),
+    bank_account: document.getElementById('set-bank').value.trim(),
+    iban: document.getElementById('set-iban').value.trim(),
+    invoice_days_due: parseInt(document.getElementById('set-due').value) || 14,
+    footer_text: document.getElementById('set-footer').value.trim(),
+  };
+  let error;
+  if (settings?.id) {
+    ({ error } = await sb.from('ts_settings').update(data).eq('id', settings.id));
+  } else {
+    ({ error } = await sb.from('ts_settings').insert(data));
+  }
+  if (error) { showToast('Chyba uložení', 'error'); return; }
+  settings = { ...settings, ...data };
+  document.getElementById('hdr-name').textContent = (data.name || 'Jakub Vršecký') + ' OSVČ';
+  showToast('Nastavení uloženo ✓', 'success');
+  updatePreviewSupplier();
+  updateInvoiceNumber();
+}
+
+// ============================================================
+// CLIENTS
+// ============================================================
+async function loadClients() {
+  const { data } = await sb.from('ts_clients').select('*').order('sort_order').order('name');
+  allClients = data || [];
+  renderClientsSettings();
+  renderClientSelect();
+  renderQuickClients();
+  renderClientFilterSelect();
+}
+
+function renderClientsSettings() {
+  const list = document.getElementById('clients-list');
+  if (!allClients.length) {
+    list.innerHTML = '<div class="cl-add" onclick="openClientModal(null)">+ Přidat prvního klienta</div>';
+    return;
+  }
+  list.innerHTML = allClients.map(c => `
+    <div class="cl-card">
+      <div class="cl-init">${c.name.substring(0,2).toUpperCase()}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:500">${c.name}</div>
+        <div class="muted">${c.ico ? 'IČO: '+c.ico : '&nbsp;'}</div>
+      </div>
+      <div class="mono" style="color:var(--green);font-size:12px;white-space:nowrap">${fmtCZK(c.hourly_rate)}/h</div>
+      <button class="ibtn" onclick="openClientModal('${c.id}')">✏️</button>
+      <button class="ibtn danger" onclick="deleteClient('${c.id}')">✕</button>
+    </div>`).join('') +
+    '<div class="cl-add" onclick="openClientModal(null)" style="margin-top:6px">+ Přidat klienta</div>';
+}
+
+function renderClientSelect() {
+  const sel = document.getElementById('inv-client');
+  sel.innerHTML = '<option value="">— vyber klienta —</option>' +
+    allClients.map(c => `<option value="${c.id}">${c.name} — ${fmtCZK(c.hourly_rate)}/h</option>`).join('');
+}
+
+function renderClientFilterSelect() {
+  const sel = document.getElementById('filter-client');
+  sel.innerHTML = '<option value="">Všichni klienti</option>' +
+    allClients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+}
+
+function renderQuickClients() {
+  const top = allClients.slice(0, 3);
+  const container = document.getElementById('quick-clients');
+  container.innerHTML = top.map(c => `
+    <button class="qc-btn ${selectedClientId === c.id ? 'on' : ''}"
+      onclick="pickClient('${c.id}','${c.name.replace(/'/g,"\\'")}',${c.hourly_rate})">
+      ${c.name.length > 12 ? c.name.split(' ')[0] : c.name}
+    </button>`).join('');
+}
+
+function openClientModal(id) {
+  editingClientId = id;
+  document.getElementById('modal-cl-title').textContent = id ? 'Upravit klienta' : 'Nový klient';
+  if (id) {
+    const c = allClients.find(x => x.id === id);
+    if (c) {
+      document.getElementById('cl-name').value = c.name || '';
+      document.getElementById('cl-ico').value = c.ico || '';
+      document.getElementById('cl-rate').value = c.hourly_rate || '';
+      document.getElementById('cl-address').value = c.address || '';
+      document.getElementById('cl-email').value = c.email || '';
+    }
+  } else {
+    ['cl-name','cl-ico','cl-rate','cl-address','cl-email'].forEach(id => document.getElementById(id).value = '');
+  }
+  document.getElementById('modal-client').classList.add('open');
+}
+
+async function saveClient() {
+  const name = document.getElementById('cl-name').value.trim();
+  const rate = parseFloat(document.getElementById('cl-rate').value) || 0;
+  if (!name) { showToast('Název je povinný', 'error'); return; }
+  const data = {
+    name,
+    ico: document.getElementById('cl-ico').value.trim(),
+    hourly_rate: rate,
+    address: document.getElementById('cl-address').value.trim(),
+    email: document.getElementById('cl-email').value.trim(),
+  };
+  let error;
+  if (editingClientId) {
+    ({ error } = await sb.from('ts_clients').update(data).eq('id', editingClientId));
+  } else {
+    ({ error } = await sb.from('ts_clients').insert(data));
+  }
+  if (error) { showToast('Chyba: ' + error.message, 'error'); return; }
+  closeModal('modal-client');
+  await loadClients();
+  showToast('Klient uložen ✓', 'success');
+}
+
+async function deleteClient(id) {
+  if (!confirm('Smazat klienta? Smažou se i všechny záznamy.')) return;
+  await sb.from('ts_clients').delete().eq('id', id);
+  await loadClients();
+  await loadAllEntries();
+  showToast('Klient smazán', 'success');
+}
+
+// AUTOCOMPLETE
+function filterClientAC(val) {
+  const filtered = allClients.filter(c => c.name.toLowerCase().includes(val.toLowerCase()));
+  const list = document.getElementById('ac-clients');
+  list.innerHTML = filtered.map(c => `
+    <div class="ac-item" onmousedown="pickClient('${c.id}','${c.name.replace(/'/g,"\\'")}',${c.hourly_rate})">
+      <span>${c.name}</span>
+      <span class="ac-rate">${fmtCZK(c.hourly_rate)}/h</span>
+    </div>`).join('');
+  list.classList.add('open');
+}
+function openClientAC() {
+  filterClientAC(document.getElementById('ent-client').value);
+}
+function closeClientAC() {
+  document.getElementById('ac-clients').classList.remove('open');
+}
+
+function pickClient(id, name, rate) {
+  selectedClientId = id;
+  selectedClientName = name;
+  selectedClientRate = rate;
+  document.getElementById('ent-client').value = name;
+  document.getElementById('rate-display').textContent = fmtCZK(rate) + '/h';
+  document.getElementById('ac-clients').classList.remove('open');
+  renderQuickClients();
+}
+
+// ============================================================
+// ENTRIES
+// ============================================================
+async function loadAllEntries() {
+  const { data } = await sb.from('ts_entries')
+    .select('*, ts_clients(name, hourly_rate)')
+    .order('date', {ascending: false});
+  allEntries = data || [];
+  updateKPIs();
+  await loadMonthEntries();
+}
+
+async function saveEntry() {
+  if (!selectedClientId) { showToast('Vyber klienta', 'error'); return; }
+  const date = document.getElementById('ent-date').value;
+  const desc = document.getElementById('ent-desc').value.trim();
+  if (!date) { showToast('Vyber datum', 'error'); return; }
+  const { error } = await sb.from('ts_entries').insert({
+    client_id: selectedClientId,
+    date,
+    hours,
+    description: desc,
+    invoiced: false,
+  });
+  if (error) { showToast('Chyba: ' + error.message, 'error'); return; }
+  document.getElementById('ent-desc').value = '';
+  hours = 1.0;
+  document.getElementById('ent-hours').value = '1,00';
+  await loadAllEntries();
+  renderDaysStrip();
+  renderDayEntries();
+  showToast('Záznam přidán ✓', 'success');
+}
+
+async function deleteEntry(id) {
+  if (!confirm('Smazat záznam?')) return;
+  await sb.from('ts_entries').delete().eq('id', id);
+  await loadAllEntries();
+  renderDaysStrip();
+  renderDayEntries();
+  showToast('Záznam smazán', 'success');
+}
+
+function renderDayEntries() {
+  const container = document.getElementById('day-entries');
+  const entries = allEntries.filter(e => e.date === selectedDate);
+  const d = new Date(selectedDate + 'T12:00:00');
+  document.getElementById('day-label').textContent = d.toLocaleDateString('cs-CZ', {day:'numeric',month:'long',year:'numeric'});
+
+  if (!entries.length) {
+    container.innerHTML = '<div class="loading-msg" style="padding:1rem">žádné záznamy pro tento den</div>';
+    document.getElementById('day-total').textContent = '';
+    return;
+  }
+  const totalH = entries.reduce((s, e) => s + parseFloat(e.hours), 0);
+  const totalCZK = entries.reduce((s, e) => s + parseFloat(e.hours) * (e.ts_clients?.hourly_rate || 0), 0);
+  document.getElementById('day-total').textContent = `${fmtH(totalH)} · ${fmtCZK(totalCZK)}`;
+
+  container.innerHTML = `<table>
+    <thead><tr><th>Klient</th><th>Popis</th><th class="tr">Hodiny</th><th class="tr">Částka</th><th>Stav</th><th></th></tr></thead>
+    <tbody>${entries.map(e => {
+      const amt = parseFloat(e.hours) * (e.ts_clients?.hourly_rate || 0);
+      return `<tr>
+        <td style="font-weight:500">${e.ts_clients?.name || '—'}</td>
+        <td class="muted">${e.description || '—'}</td>
+        <td class="tr mono">${fmtH(e.hours)}</td>
+        <td class="tr mono" style="color:var(--green)">${fmtCZK(amt)}</td>
+        <td>${e.invoiced ? '<span class="badge inv">Zafakturováno</span>' : '<span class="badge new">Nový</span>'}</td>
+        <td><button class="ibtn danger" onclick="deleteEntry('${e.id}')">✕</button></td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table>`;
+}
+
+async function loadMonthEntries() {
+  const sel = document.getElementById('filter-month');
+  const val = sel.value;
+  if (!val) return;
+  const [year, month] = val.split('-');
+  const from = `${year}-${month}-01`;
+  const lastDay = new Date(year, month, 0).getDate();
+  const to = `${year}-${month}-${String(lastDay).padStart(2,'0')}`;
+  const { data } = await sb.from('ts_entries')
+    .select('*, ts_clients(name, hourly_rate)')
+    .gte('date', from).lte('date', to)
+    .order('date', {ascending: false});
+  monthEntries = data || [];
+  filterTable();
+}
+
+function filterTable() {
+  const clientFilter = document.getElementById('filter-client').value;
+  const entries = clientFilter
+    ? monthEntries.filter(e => e.client_id === clientFilter)
+    : monthEntries;
+  renderMonthTable(entries);
+}
+
+function renderMonthTable(entries) {
+  const tbody = document.getElementById('month-body');
+  if (!entries.length) {
+    tbody.innerHTML = '<tr><td colspan="8" class="loading-msg">Žádné záznamy</td></tr>';
+    return;
+  }
+  tbody.innerHTML = entries.map(e => {
+    const rate = e.ts_clients?.hourly_rate || 0;
+    const amt = parseFloat(e.hours) * rate;
+    return `<tr>
+      <td class="muted">${formatDate(e.date)}</td>
+      <td style="font-weight:500">${e.ts_clients?.name || '—'}</td>
+      <td class="muted">${e.description || '—'}</td>
+      <td class="tr mono">${fmtH(e.hours)}</td>
+      <td class="tr muted">${fmtCZK(rate)}</td>
+      <td class="tr mono" style="color:var(--green)">${fmtCZK(amt)}</td>
+      <td>${e.invoiced ? '<span class="badge inv">Zafakturováno</span>' : '<span class="badge new">Nový</span>'}</td>
+      <td>${!e.invoiced ? `<button class="ibtn danger" onclick="deleteEntry('${e.id}')">✕</button>` : ''}</td>
+    </tr>`;
+  }).join('');
+}
+
+function initMonthFilter() {
+  const sel = document.getElementById('filter-month');
+  const now = new Date();
+  sel.innerHTML = '';
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const val = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    const label = `${MONTHS_CZ[d.getMonth()]} ${d.getFullYear()}`;
+    sel.innerHTML += `<option value="${val}">${label}</option>`;
+  }
+  loadMonthEntries();
+}
+
+// ============================================================
+// DAYS STRIP
+// ============================================================
+function renderDaysStrip() {
+  const strip = document.getElementById('days-strip');
+  const today = new Date();
+  const base = new Date(today);
+  base.setDate(base.getDate() + weekOffset * 7);
+
+  const dates = [];
+  for (let i = -2; i <= 2; i++) {
+    const d = new Date(base);
+    d.setDate(d.getDate() + i);
+    dates.push(d);
+  }
+
+  strip.innerHTML = dates.map(d => {
+    const ds = d.toISOString().split('T')[0];
+    const isSelected = ds === selectedDate;
+    const todayStr = new Date().toISOString().split('T')[0];
+    const isToday = ds === todayStr;
+    const dayH = allEntries.filter(e => e.date === ds).reduce((s,e) => s + parseFloat(e.hours), 0);
+    return `<div class="day-chip ${isSelected ? 'on' : ''}" onclick="pickDay('${ds}')">
+      <div class="day-name">${DAYS_CZ[d.getDay()]}${isToday ? '·d' : ''}</div>
+      <div class="day-num">${d.getDate()}. ${d.getMonth()+1}.</div>
+      <div class="day-h ${dayH > 0 ? 'has' : 'no'}">⏱ ${dayH > 0 ? fmtH(dayH) : '—'}</div>
+    </div>`;
+  }).join('');
+}
+
+function pickDay(ds) {
+  selectedDate = ds;
+  document.getElementById('ent-date').value = ds;
+  renderDaysStrip();
+  renderDayEntries();
+}
+
+function syncDateFromInput(val) {
+  selectedDate = val;
+  renderDaysStrip();
+  renderDayEntries();
+}
+
+function shiftWeek(dir) {
+  weekOffset += dir;
+  renderDaysStrip();
+}
+
+// ============================================================
+// HOURS CONTROL
+// ============================================================
+function changeHours(delta) {
+  hours = Math.max(0.25, Math.round((hours + delta) * 4) / 4);
+  document.getElementById('ent-hours').value = hours.toFixed(2).replace('.', ',');
+}
+
+function parseHoursInput(val) {
+  const n = parseFloat(val.replace(',', '.'));
+  if (!isNaN(n) && n > 0) hours = Math.round(n * 4) / 4;
+  else hours = 0.25;
+  document.getElementById('ent-hours').value = hours.toFixed(2).replace('.', ',');
+}
+
+// ============================================================
+// KPI
+// ============================================================
+function updateKPIs() {
+  const now = new Date();
+  const thisMonth = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+
+  const monthE = allEntries.filter(e => e.date.startsWith(thisMonth));
+  const monthH = monthE.reduce((s,e) => s + parseFloat(e.hours), 0);
+  const monthAmt = monthE.reduce((s,e) => s + parseFloat(e.hours) * (e.ts_clients?.hourly_rate||0), 0);
+  document.getElementById('kpi-month-h').textContent = fmtH(monthH);
+  document.getElementById('kpi-month-sub').textContent = fmtCZK(monthAmt);
+
+  const uninvE = allEntries.filter(e => !e.invoiced);
+  const uninvH = uninvE.reduce((s,e) => s + parseFloat(e.hours), 0);
+  const uninvAmt = uninvE.reduce((s,e) => s + parseFloat(e.hours) * (e.ts_clients?.hourly_rate||0), 0);
+  document.getElementById('kpi-uninv-h').textContent = fmtH(uninvH);
+  document.getElementById('kpi-uninv-sub').textContent = 'odhad ' + fmtCZK(uninvAmt);
+
+  updateKpiYear();
+}
+
+function updateKpiYear() {
+  document.getElementById('kpi-year-label').textContent = kpiYear;
+  const yearInv = allInvoices.filter(i => i.date_issued.startsWith(String(kpiYear)));
+  const total = yearInv.reduce((s,i) => s + parseFloat(i.total||0), 0);
+  const count = yearInv.length;
+  document.getElementById('kpi-inv-total').textContent = fmtCZK(total);
+  document.getElementById('kpi-inv-sub').textContent = `${count} faktur`;
+}
+
+function shiftKpiYear(dir) {
+  kpiYear += dir;
+  updateKpiYear();
+}
+
+// ============================================================
+// INVOICES
+// ============================================================
+async function loadInvoices() {
+  const { data } = await sb.from('ts_invoices')
+    .select('*, ts_clients(name)')
+    .order('created_at', {ascending:false});
+  allInvoices = data || [];
+  renderInvoiceList(allInvoices);
+  updateInvoiceListKPIs();
+  updateKpiYear();
+}
+
+function initInvoiceForm() {
+  const today = new Date();
+  document.getElementById('inv-issued').value = today.toISOString().split('T')[0];
+  const due = new Date(today);
+  due.setDate(due.getDate() + (settings?.invoice_days_due || 14));
+  document.getElementById('inv-due').value = due.toISOString().split('T')[0];
+  updateInvoiceNumber();
+  updatePreview();
+  ['inv-issued','inv-due','inv-payment','inv-note'].forEach(id => {
+    document.getElementById(id).addEventListener('input', updatePreview);
+  });
+}
+
+async function updateInvoiceNumber() {
+  const { count } = await sb.from('ts_invoices').select('*', {count:'exact',head:true});
+  const year = new Date().getFullYear();
+  const prefix = settings?.invoice_prefix || 'FV';
+  document.getElementById('inv-number').value = `${prefix}${year}/${String((count||0)+1).padStart(3,'0')}`;
+  updatePreview();
+}
+
+async function onInvClientChange() {
+  invClientId = document.getElementById('inv-client').value;
+  invSelectedEntries.clear();
+  if (!invClientId) {
+    document.getElementById('inv-entries-body').innerHTML = '<tr><td colspan="5" class="loading-msg">Vyber klienta</td></tr>';
+    document.getElementById('inv-selected-info').textContent = '';
+    updatePreview();
+    return;
+  }
+  const { data } = await sb.from('ts_entries')
+    .select('*, ts_clients(name, hourly_rate, ico, address)')
+    .eq('client_id', invClientId)
+    .eq('invoiced', false)
+    .order('date');
+  invClientEntries = data || [];
+  renderInvEntries();
+  updatePreview();
+}
+
+function renderInvEntries() {
+  const tbody = document.getElementById('inv-entries-body');
+  if (!invClientEntries.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="loading-msg">Žádné nezafakturované záznamy</td></tr>';
+    return;
+  }
+  tbody.innerHTML = invClientEntries.map(e => {
+    const rate = e.ts_clients?.hourly_rate || 0;
+    const amt = parseFloat(e.hours) * rate;
+    const checked = invSelectedEntries.has(e.id);
+    return `<tr>
+      <td><div class="chk ${checked ? 'on' : ''}" onclick="toggleInvEntry('${e.id}')">
+        ${checked ? '✓' : ''}
+      </div></td>
+      <td class="muted">${formatDate(e.date)}</td>
+      <td style="font-size:12px">${e.description || '—'}</td>
+      <td class="tr mono">${fmtH(e.hours)}</td>
+      <td class="tr mono">${fmtCZK(amt)}</td>
+    </tr>`;
+  }).join('');
+  updateInvInfo();
+}
+
+function toggleInvEntry(id) {
+  if (invSelectedEntries.has(id)) invSelectedEntries.delete(id);
+  else invSelectedEntries.add(id);
+  renderInvEntries();
+  updatePreview();
+}
+
+function updateInvInfo() {
+  const selected = invClientEntries.filter(e => invSelectedEntries.has(e.id));
+  const totalH = selected.reduce((s,e) => s + parseFloat(e.hours), 0);
+  const totalAmt = selected.reduce((s,e) => s + parseFloat(e.hours) * (e.ts_clients?.hourly_rate||0), 0);
+  document.getElementById('inv-selected-info').textContent =
+    selected.length ? `vybráno: ${fmtH(totalH)} · ${fmtCZK(totalAmt)}` : '';
+}
+
+function updatePreviewSupplier() {
+  document.getElementById('prev-sup-name').textContent = settings?.name || '—';
+  document.getElementById('prev-sup-det').innerHTML =
+    `${settings?.ico ? 'IČO: '+settings.ico+'<br>' : ''}${settings?.address || ''}<br>Neplátce DPH`;
+  document.getElementById('prev-bank').innerHTML = settings?.bank_account ?
+    `Účet: ${settings.bank_account}${settings.iban ? '<br>IBAN: '+settings.iban : ''}<br>${settings.footer_text||''}` : '';
+}
+
+function updatePreview() {
+  const num = document.getElementById('inv-number').value;
+  const issued = document.getElementById('inv-issued').value;
+  const due = document.getElementById('inv-due').value;
+  const payment = document.getElementById('inv-payment').value;
+
+  document.getElementById('prev-num').textContent = num;
+  document.getElementById('prev-meta').innerHTML =
+    `Vystavena: ${formatDate(issued)}<br>Splatnost: ${formatDate(due)}<br>${payment==='transfer'?'Převodem':'Hotově'}`;
+
+  updatePreviewSupplier();
+
+  const client = allClients.find(c => c.id === invClientId);
+  document.getElementById('prev-cl-name').textContent = client?.name || '—';
+  document.getElementById('prev-cl-det').innerHTML = client ?
+    `${client.ico ? 'IČO: '+client.ico+'<br>' : ''}${client.address||''}` : '';
+
+  const selected = invClientEntries.filter(e => invSelectedEntries.has(e.id));
+  const tbody = document.getElementById('prev-items');
+  if (selected.length) {
+    const rate = selected[0]?.ts_clients?.hourly_rate || 0;
+    tbody.innerHTML = selected.map(e => `<tr>
+      <td>${e.description || '—'}</td>
+      <td>${formatDate(e.date)}</td>
+      <td>${fmtH(e.hours)}</td>
+      <td>${fmtCZK(rate)}/h</td>
+      <td>${fmtCZK(parseFloat(e.hours)*rate)}</td>
+    </tr>`).join('');
+    const total = selected.reduce((s,e) => s + parseFloat(e.hours)*(e.ts_clients?.hourly_rate||0), 0);
+    document.getElementById('prev-total').textContent = fmtCZK(total);
+  } else {
+    tbody.innerHTML = '';
+    document.getElementById('prev-total').textContent = '0 Kč';
+  }
+}
+
+async function saveInvoice() {
+  if (!invClientId) { showToast('Vyber klienta', 'error'); return; }
+  if (!invSelectedEntries.size) { showToast('Vyber alespoň jeden záznam', 'error'); return; }
+  const selected = invClientEntries.filter(e => invSelectedEntries.has(e.id));
+  const total = selected.reduce((s,e) => s + parseFloat(e.hours)*(e.ts_clients?.hourly_rate||0), 0);
+  const invData = {
+    client_id: invClientId,
+    invoice_number: document.getElementById('inv-number').value,
+    date_issued: document.getElementById('inv-issued').value,
+    date_due: document.getElementById('inv-due').value,
+    total,
+    status: 'open',
+    note: document.getElementById('inv-note').value,
+  };
+  const { data: inv, error } = await sb.from('ts_invoices').insert(invData).select().single();
+  if (error) { showToast('Chyba: ' + error.message, 'error'); return; }
+  // Označ záznamy jako zafakturované
+  await sb.from('ts_entries').update({ invoiced: true, invoice_id: inv.id }).in('id', [...invSelectedEntries]);
+  showToast('Faktura vystavena ✓', 'success');
+  await Promise.all([loadAllEntries(), loadInvoices()]);
+  invSelectedEntries.clear();
+  invClientId = null;
+  document.getElementById('inv-client').value = '';
+  document.getElementById('inv-entries-body').innerHTML = '<tr><td colspan="5" class="loading-msg">Vyber klienta</td></tr>';
+  document.getElementById('inv-note').value = '';
+  await updateInvoiceNumber();
+  updatePreview();
+}
+
+function renderInvoiceList(invoices) {
+  const tbody = document.getElementById('list-body');
+  if (!invoices.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="loading-msg">Žádné faktury</td></tr>';
+    return;
+  }
+  tbody.innerHTML = invoices.map(i => `<tr>
+    <td class="mono">${i.invoice_number}</td>
+    <td style="font-weight:500">${i.ts_clients?.name||'—'}</td>
+    <td class="muted">${formatDate(i.date_issued)}</td>
+    <td class="muted">${formatDate(i.date_due)}</td>
+    <td class="tr mono" style="color:var(--green)">${fmtCZK(i.total)}</td>
+    <td>${badgeHTML(i.status)}</td>
+    <td><div style="display:flex;gap:4px">
+      ${i.status !== 'paid' ? `<button class="ibtn" onclick="markPaid('${i.id}')" title="Uhrazeno">✓</button>` : ''}
+      <button class="ibtn danger" onclick="deleteInvoice('${i.id}')">✕</button>
+    </div></td>
+  </tr>`).join('');
+}
+
+function filterInvoiceList(q) {
+  const f = allInvoices.filter(i =>
+    i.invoice_number.toLowerCase().includes(q.toLowerCase()) ||
+    (i.ts_clients?.name||'').toLowerCase().includes(q.toLowerCase())
+  );
+  renderInvoiceList(f);
+}
+
+function filterInvoiceStatus(status) {
+  const f = status ? allInvoices.filter(i => i.status === status) : allInvoices;
+  renderInvoiceList(f);
+}
+
+async function markPaid(id) {
+  await sb.from('ts_invoices').update({ status: 'paid' }).eq('id', id);
+  await loadInvoices();
+  showToast('Faktura uhrazena ✓', 'success');
+}
+
+async function deleteInvoice(id) {
+  if (!confirm('Smazat fakturu?')) return;
+  await sb.from('ts_invoices').delete().eq('id', id);
+  await loadInvoices();
+  showToast('Faktura smazána', 'success');
+}
+
+function updateInvoiceListKPIs() {
+  const total = allInvoices.reduce((s,i) => s + parseFloat(i.total||0), 0);
+  const paid = allInvoices.filter(i => i.status==='paid').reduce((s,i) => s + parseFloat(i.total||0), 0);
+  const open = allInvoices.filter(i => i.status==='open').reduce((s,i) => s + parseFloat(i.total||0), 0);
+  document.getElementById('list-kpi-total').textContent = fmtCZK(total);
+  document.getElementById('list-kpi-paid').textContent = fmtCZK(paid);
+  document.getElementById('list-kpi-open').textContent = fmtCZK(open);
+}
+
+function badgeHTML(status) {
+  const map = {open:'Otevřená',paid:'Uhrazená',draft:'Koncept'};
+  return `<span class="badge ${status}">${map[status]||status}</span>`;
+}
+
+function printInvoice() {
+  const content = document.getElementById('invoice-preview').innerHTML;
+  const w = window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
+    body{font-family:Arial,sans-serif;padding:2cm;font-size:12px;color:#000}
+    *{box-sizing:border-box}
+    .inv-head{display:flex;justify-content:space-between;margin-bottom:20px}
+    .inv-ttl{font-size:22px;font-weight:bold}
+    .inv-num{font-size:12px;color:#666;margin-top:3px}
+    .inv-meta{font-size:11px;color:#666;text-align:right;line-height:1.8}
+    .inv-parties{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}
+    .plbl{font-size:10px;color:#666;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:2px}
+    .pname{font-size:13px;font-weight:bold;margin-bottom:2px}
+    .pdet{font-size:11px;color:#666;line-height:1.6}
+    .inv-tbl{width:100%;border-collapse:collapse;margin-bottom:15px}
+    .inv-tbl th,.inv-tbl td{padding:5px 6px;border-bottom:1px solid #ddd;text-align:left}
+    .inv-tbl td:last-child{text-align:right}
+    .inv-total{text-align:right}
+    .inv-tline{display:flex;justify-content:flex-end;gap:20px;padding:2px 0}
+    .inv-tline.fin{font-weight:bold;font-size:14px;border-top:1px solid #000;padding-top:6px;margin-top:4px}
+    .inv-bank{margin-top:10px;padding-top:10px;border-top:1px solid #ddd;font-size:11px;color:#666}
+  </style></head><body>${content}</body></html>`);
+  w.document.close();
+  w.print();
+}
+
+// ============================================================
+// EXPORT
+// ============================================================
+function exportTimesheetExcel() {
+  const rows = [['Datum','Klient','Popis','Hodiny','Sazba','Částka','Stav']];
+  monthEntries.forEach(e => {
+    const rate = e.ts_clients?.hourly_rate || 0;
+    rows.push([formatDate(e.date), e.ts_clients?.name||'', e.description||'', parseFloat(e.hours), rate, parseFloat(e.hours)*rate, e.invoiced?'Zafakturováno':'Nový']);
+  });
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Timesheet');
+  XLSX.writeFile(wb, 'Timesheet.xlsx');
+}
+
+function exportInvoicesExcel() {
+  const rows = [['Číslo','Klient','Vystavena','Splatnost','Částka','Stav']];
+  allInvoices.forEach(i => {
+    rows.push([i.invoice_number, i.ts_clients?.name||'', formatDate(i.date_issued), formatDate(i.date_due), parseFloat(i.total||0), i.status]);
+  });
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Faktury');
+  XLSX.writeFile(wb, 'Vydane_faktury.xlsx');
+}
+
+// ============================================================
+// NAV
+// ============================================================
+function showTab(id, el) {
+  document.querySelectorAll('.pg').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.ntab').forEach(t => t.classList.remove('on'));
+  document.getElementById('tab-' + id).classList.add('on');
+  el.classList.add('on');
+  if (id === 'list') { renderInvoiceList(allInvoices); updateInvoiceListKPIs(); }
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function fmtCZK(n) {
+  return new Intl.NumberFormat('cs-CZ',{style:'currency',currency:'CZK',minimumFractionDigits:0,maximumFractionDigits:0}).format(n||0);
+}
+function fmtH(h) {
+  return parseFloat(h).toFixed(2).replace('.', ',') + ' h';
+}
+function formatDate(ds) {
+  if (!ds) return '—';
+  const d = new Date(ds + 'T12:00:00');
+  return d.toLocaleDateString('cs-CZ');
+}
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast show ${type}`;
+  setTimeout(() => { t.className = 'toast'; }, 3000);
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+</script>
+</body>
+</html>
